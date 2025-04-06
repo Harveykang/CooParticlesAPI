@@ -11,6 +11,58 @@ object Math3DUtil {
         return Vector3f(x.toFloat() / 255, y.toFloat() / 255, z.toFloat() / 255)
     }
 
+
+    /**
+     * @see getCycloidGraphic 获取此函数生成的图像的顶点
+     * 参数要求必须和 getCycloidGraphic 生成的参数完全一致
+     */
+    fun computeCycloidVertices(
+        r1: Double,
+        r2: Double,
+        w1: Int,
+        w2: Int,
+        count: Int,
+        scale: Double
+    ): MutableList<RelativeLocation> {
+        val doubled = max(abs(w1), abs(w2))
+        val precision = 360 * doubled / count
+        val w1Step = w1 * precision
+        val w2Step = w2 * precision
+        val w1Abs = abs(w1)
+        val w2Abs = abs(w2)
+
+        val d = gcd(w1Abs, w2Abs)
+        val verticesCount = (w1Abs + w2Abs) / d
+        val vertices = mutableListOf<RelativeLocation>()
+
+        for (k in 0..<verticesCount) {
+            val delta = w1Step - w2Step
+            val t = (2 * Math.PI * k) / delta
+            val x = r1 * cos(w1Step * t) + r2 * cos(w2Step * t) * scale
+            val z = r1 * sin(w1Step * t) + r2 * sin(w2Step * t) * scale
+            vertices.add(
+                RelativeLocation(x, 0.0, z)
+            )
+        }
+
+        return vertices
+    }
+
+
+    /**
+     * 求最大公约数
+     */
+    fun gcd(i: Int, j: Int): Int {
+        var x = i.absoluteValue
+        var y = j.absoluteValue
+        while (y != 0) {
+            val temp = y
+            y = x % y
+            x = temp
+        }
+        return x
+    }
+
     /**
      * 此函数在计算上误将 弧度制输入成了角度制 导致结果出现偏差(虽然点大差不差, 因为360 * 0.1的 3600点的精度)
      * 足矣覆盖误差 但是要更加正确完整的结果请使用 输入count计算精度的函数版本
@@ -22,7 +74,7 @@ object Math3DUtil {
      * r1:r2 与 w1:w2 和 生成的图形有紧密的关系
      * 例如
      * r1:r2 = 3:2 w1:w2 = 2:-3 时 图像是一个五角星
-     * @param radiusPrecision 半径精度 如果r1认为太大 则设置小的值
+     * @param scale 半径精度 如果r1认为太大 则设置小的值
      * @return 最后的图像 (在XZ平面上(以Z为纵坐标))
      */
     fun getCycloidGraphic(
@@ -31,8 +83,8 @@ object Math3DUtil {
         w1: Int,
         w2: Int,
         count: Int,
-        radiusPrecision: Double
-    ): ArrayList<RelativeLocation> {
+        scale: Double
+    ): MutableList<RelativeLocation> {
         // 原点上的圆的当前角度
         val result = ArrayList<RelativeLocation>()
         var radOrigin = 0.0
@@ -45,9 +97,9 @@ object Math3DUtil {
             radA += w2 * precision
             result.add(
                 RelativeLocation(
-                    (r2 * cos(radA) + r1 * cos(radOrigin)) * radiusPrecision,
+                    (r2 * cos(radA) + r1 * cos(radOrigin)) * scale,
                     0.0,
-                    (r2 * sin(radA) + r1 * sin(radOrigin)) * radiusPrecision
+                    (r2 * sin(radA) + r1 * sin(radOrigin)) * scale
                 )
             )
             current++
@@ -222,5 +274,6 @@ object Math3DUtil {
             this.z * that.w - this.y * that.x + this.x * that.y + this.w * that.z
         )
     }
+
 
 }
