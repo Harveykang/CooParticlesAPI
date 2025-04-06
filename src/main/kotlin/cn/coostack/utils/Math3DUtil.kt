@@ -28,11 +28,9 @@ object Math3DUtil {
         val precision = 360 * doubled / count
         val w1Step = w1 * precision
         val w2Step = w2 * precision
-        val w1Abs = abs(w1)
-        val w2Abs = abs(w2)
 
-        val d = gcd(w1Abs, w2Abs)
-        val verticesCount = (w1Abs + w2Abs) / d
+        val d = gcd(abs(w1), abs(w2))
+        val verticesCount = abs(w1 - w2) / d
         val vertices = mutableListOf<RelativeLocation>()
 
         for (k in 0..<verticesCount) {
