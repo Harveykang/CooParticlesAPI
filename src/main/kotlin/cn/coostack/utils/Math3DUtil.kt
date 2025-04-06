@@ -13,6 +13,7 @@ object Math3DUtil {
 
 
     /**
+     * DeepSeek解放大脑
      * @see getCycloidGraphic 获取此函数生成的图像的顶点
      * 参数要求必须和 getCycloidGraphic 生成的参数完全一致
      */
@@ -30,6 +31,7 @@ object Math3DUtil {
         val w2Step = w2 * precision
 
         val d = gcd(abs(w1), abs(w2))
+        // 感谢MZ的数学更正
         val verticesCount = abs(w1 - w2) / d
         val vertices = mutableListOf<RelativeLocation>()
 
