@@ -133,7 +133,8 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
                 // it类型为UUID
                 TestEndRodEffect(it) 
             }) {
-                // this is ControlableParticle
+                // kt: this is ControlableParticle
+                // java: this instanceof ControlableParticle
                 // 用于初始化粒子信息
                 color = Vector3f(230 / 255f, 130 / 255f, 60 / 255f)
                 this.maxAliveTick = this.maxAliveTick
