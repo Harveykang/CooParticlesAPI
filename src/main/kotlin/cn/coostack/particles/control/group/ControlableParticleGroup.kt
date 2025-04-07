@@ -1,12 +1,15 @@
 package cn.coostack.particles.control.group
 
+import cn.coostack.particles.Controlable
 import cn.coostack.particles.ControlableParticle
+import cn.coostack.particles.ParticleDisplayer
 import cn.coostack.particles.control.ControlParticleManager
 import cn.coostack.particles.control.ParticleControler
 import cn.coostack.test.util.Math3DUtil
 import cn.coostack.test.util.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.particle.ParticleEffect
 import net.minecraft.util.math.Vec3d
@@ -31,14 +34,10 @@ import java.util.concurrent.ConcurrentHashMap
  * 所以删除粒子只能在服务器上
  */
 @Environment(EnvType.CLIENT)
-abstract class ControlableParticleGroup(val uuid: UUID) {
-    protected val particles = ConcurrentHashMap<UUID, ParticleControler>()
+abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<ControlableParticleGroup> {
+    protected val particles = ConcurrentHashMap<UUID, Controlable<*>>()
+    protected val particlesLocations = ConcurrentHashMap<Controlable<*>, RelativeLocation>()
     private val invokeQueue = mutableListOf<(ControlableParticleGroup) -> Unit>()
-
-    /**
-     * uuid 代表ParticleControler的UUID
-     */
-    private val particleRelativeLocations = loadParticleLocations()
 
     var tick = 0
     var maxTick = 120
@@ -67,13 +66,20 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
     abstract fun onGroupDisplay()
 
 
-    fun withEffect(effect: (UUID) -> ParticleEffect, invoker: ControlableParticle.() -> Unit): ParticleRelativeData =
+    fun withEffect(effect: (UUID) -> ParticleDisplayer, invoker: ControlableParticle.() -> Unit): ParticleRelativeData =
         ParticleRelativeData(effect, invoker)
 
     fun clearParticles() {
         particles.onEach {
-            it.value.particle.markDead()
+            val controlObject = it.value.getControlObject()
+            if (controlObject is ControlableParticle) {
+                controlObject.markDead()
+            } else {
+                controlObject as ControlableParticleGroup
+                controlObject.clearParticles()
+            }
         }.clear()
+        particlesLocations.clear()
         valid = false
     }
 
@@ -89,6 +95,9 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
             }
         }
         invokeQueue.forEach { it(this) }
+        particles.asSequence().filter { it.value is ControlableParticleGroup }.forEach {
+            (it.value.getControlObject() as ControlableParticleGroup).tick()
+        }
     }
 
     fun display(pos: Vec3d, world: ClientWorld) {
@@ -98,48 +107,52 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
         this.origin = pos
         this.world = world
         displayed = true
-        for ((v, rl) in particleRelativeLocations) {
+        for ((v, rl) in loadParticleLocations()) {
             val uuid = UUID.randomUUID()
-            val controler = ControlParticleManager.createControl(uuid)
-            controler.initInvoker = v.invoker
-            world.addParticle(
-                v.effect(uuid), pos.x + rl.x, pos.y + rl.y, pos.z + rl.z, 0.0, 0.0, 0.0
-            )
+            val particleDisplayer = v.effect(uuid)
+            if (particleDisplayer is ParticleDisplayer.SingleParticleDisplayer) {
+                val controler = ControlParticleManager.createControl(uuid)
+                controler.initInvoker = v.invoker
+            }
+            val toPos = Vec3d(pos.x + rl.x, pos.y + rl.y, pos.z + rl.z)
+            val controler = particleDisplayer.display(toPos, world) ?: continue
+//            world.addParticle(
+//                v.effect(uuid), pos.x + rl.x, pos.y + rl.y, pos.z + rl.z, 0.0, 0.0, 0.0
+//            )
             particles[uuid] = controler
+            particlesLocations[controler] = rl
         }
         onGroupDisplay()
     }
 
-    fun rotateParticlesToPoint(to: RelativeLocation) {
+    override fun rotateParticlesToPoint(to: RelativeLocation) {
         if (!displayed) {
             return
         }
-        val relativeParticles = getParticleRelativeLocations()
         Math3DUtil.rotatePointsToPoint(
-            relativeParticles.values.toList(), to, axis
+            particlesLocations.values.toList(), to, axis
         )
 
         // 把粒子丢到对应的位置
-        relativeParticles.forEach { (t, u) ->
-            t.controlAction { teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z) }
+        particlesLocations.forEach { (t, u) ->
+            t.teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z)
         }
 
         axis = to.normalize()
     }
 
-    fun rotateToWithAngle(to: RelativeLocation, angle: Double) {
+    override fun rotateToWithAngle(to: RelativeLocation, angle: Double) {
         if (!displayed) {
             return
         }
-        val relativeParticles = getParticleRelativeLocations()
         Math3DUtil.rotatePointsToPoint(
-            relativeParticles.values.toList(), to, axis
+            particlesLocations.values.toList(), to, axis
         )
         Math3DUtil.rotateAsAxis(
-            relativeParticles.values.toList(), to.normalize(), angle
+            particlesLocations.values.toList(), to.normalize(), angle
         )
-        relativeParticles.forEach { (t, u) ->
-            t.controlAction { teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z) }
+        particlesLocations.forEach { (t, u) ->
+            t.teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z)
         }
         axis = to.normalize()
     }
@@ -147,28 +160,38 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
     /**
      * @param angle 输入弧度制
      */
-    fun rotateParticlesAsAxis(angle: Double) {
+    override fun rotateParticlesAsAxis(angle: Double) {
         if (!displayed) {
             return
         }
-        val relativeParticles = getParticleRelativeLocations()
         Math3DUtil.rotateAsAxis(
-            relativeParticles.values.toList(), axis, angle
+            particlesLocations.values.toList(), axis, angle
         )
         // 把粒子丢到对应的位置
-        relativeParticles.forEach { (t, u) ->
-            t.controlAction { teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z) }
+        particlesLocations.forEach { (t, u) ->
+            t.teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z)
         }
     }
 
+    @Deprecated("使用 teleportTo")
     fun teleportGroupTo(pos: Vec3d) {
-        val relativeMapper = getParticleRelativeLocations()
+        val relativeMapper = particlesLocations
         this.origin = pos
         relativeMapper.forEach { (t, u) ->
-            t.controlAction {
-                teleportTo(u.x + pos.x, u.y + pos.y, u.z + pos.z)
-            }
+            t.teleportTo(u.x + pos.x, u.y + pos.y, u.z + pos.z)
         }
+    }
+
+    override fun teleportTo(pos: Vec3d) {
+        teleportGroupTo(pos)
+    }
+
+    override fun teleportTo(x: Double, y: Double, z: Double) {
+        teleportGroupTo(Vec3d(x, y, z))
+    }
+
+    override fun getControlObject(): ControlableParticleGroup {
+        return this
     }
 
     /**
@@ -180,18 +203,8 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
         return this
     }
 
-    protected fun getParticleRelativeLocations(): Map<ParticleControler, RelativeLocation> {
-        val relativeParticles = HashMap<ParticleControler, RelativeLocation>()
-        particles.forEach { (t, u) ->
-            val value = RelativeLocation.of(origin.relativize(u.particle.pos))
-            relativeParticles[u] = value
-        }
-        return relativeParticles
-    }
-
-    data class ParticleRelativeData(
-        val effect: (UUID) -> ParticleEffect,
+    class ParticleRelativeData(
+        val effect: (UUID) -> ParticleDisplayer,
         val invoker: ControlableParticle.() -> Unit
     )
-
 }

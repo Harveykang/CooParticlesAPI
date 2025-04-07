@@ -16,6 +16,7 @@ object Math3DUtil {
      * DeepSeek解放大脑
      * @see getCycloidGraphic 获取此函数生成的图像的顶点
      * 参数要求必须和 getCycloidGraphic 生成的参数完全一致
+     * @param count 填写你使用  getCycloidGraphic方法时 输入的count
      */
     fun computeCycloidVertices(
         r1: Double,

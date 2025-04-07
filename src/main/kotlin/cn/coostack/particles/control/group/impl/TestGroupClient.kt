@@ -1,6 +1,7 @@
 package cn.coostack.particles.control.group.impl
 
 import cn.coostack.network.buffer.ParticleControlerDataBuffer
+import cn.coostack.particles.ParticleDisplayer
 import cn.coostack.particles.control.group.ControlableParticleGroup
 import cn.coostack.particles.control.group.ControlableParticleGroupProvider
 import cn.coostack.particles.impl.TestEndRodEffect
@@ -24,14 +25,25 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
     }
 
     override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {
-        val list = Math3DUtil.getCycloidGraphic(3.0, 5.0, 2, -3, 360, 0.2).onEach { it.y += 6 }
-        return list.associateBy {
-            withEffect({ TestEndRodEffect(it) }) {
+        val r1 = 3.0
+        val r2 = 5.0
+        val w1 = -2
+        val w2 = 3
+        val scale = 1.0
+        val count = 360
+        val list = Math3DUtil.getCycloidGraphic(r1, r2, w1, w2, count, scale).onEach { it.y += 6 }
+        val map = list.associateBy {
+            withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
                 color = Vector3f(230 / 255f, 130 / 255f, 60 / 255f)
                 this.maxAliveTick = this.maxAliveTick
             }
         }
-
+        val mutable = map.toMutableMap()
+        for (rel in Math3DUtil.computeCycloidVertices(r1, r2, w1, w2, count, scale)) {
+            mutable[withEffect({ u -> ParticleDisplayer.withGroup(TestSubGroupClient(u, bindPlayer)) }) {}] =
+                rel.clone()
+        }
+        return mutable
     }
 
 

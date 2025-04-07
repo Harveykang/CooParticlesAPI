@@ -1,5 +1,6 @@
 package cn.coostack.particles.impl
 
+import cn.coostack.particles.ControlableParticleEffect
 import cn.coostack.particles.ModParticles
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
@@ -11,7 +12,7 @@ import net.minecraft.particle.ParticleEffect
 import net.minecraft.particle.ParticleType
 import java.util.UUID
 
-class TestEndRodEffect(val controlUUID: UUID) : ParticleEffect {
+class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
     companion object {
         @JvmStatic
         val codec: MapCodec<TestEndRodEffect> = RecordCodecBuilder.mapCodec {

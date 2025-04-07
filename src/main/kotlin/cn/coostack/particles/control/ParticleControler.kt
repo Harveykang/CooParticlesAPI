@@ -2,8 +2,11 @@ package cn.coostack.particles.control
 
 import cn.coostack.particles.ControlableParticle
 import cn.coostack.network.buffer.ParticleControlerDataBuffer
+import cn.coostack.particles.Controlable
+import cn.coostack.test.util.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.minecraft.util.math.Vec3d
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -12,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
  * 此Controler 由 ControlerGroup代理创建 (Builder) 并使用
  */
 @Environment(EnvType.CLIENT)
-class ParticleControler(private val uuid: UUID) {
+class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticle> {
     lateinit var particle: ControlableParticle
         private set
 
@@ -63,6 +66,27 @@ class ParticleControler(private val uuid: UUID) {
         invokeQueue.forEach {
             it(particle)
         }
+    }
+
+    override fun rotateParticlesToPoint(to: RelativeLocation) {
+    }
+
+    override fun rotateToWithAngle(to: RelativeLocation, angle: Double) {
+    }
+
+    override fun rotateParticlesAsAxis(angle: Double) {
+    }
+
+    override fun teleportTo(pos: Vec3d) {
+        particle.teleportTo(pos)
+    }
+
+    override fun teleportTo(x: Double, y: Double, z: Double) {
+        particle.teleportTo(x, y, z)
+    }
+
+    override fun getControlObject(): ControlableParticle {
+        return particle
     }
 
 

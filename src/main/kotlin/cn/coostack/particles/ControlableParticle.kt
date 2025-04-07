@@ -2,6 +2,7 @@ package cn.coostack.particles
 
 import cn.coostack.particles.control.ControlParticleManager
 import cn.coostack.particles.control.ParticleControler
+import cn.coostack.test.util.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.particle.Particle
@@ -25,12 +26,10 @@ abstract class ControlableParticle(
 ) : SpriteBillboardParticle(world, pos.x, pos.y, pos.z, velocity.x, velocity.y, velocity.z) {
     val controler: ParticleControler = ControlParticleManager.getControl(controlUUID)!!
 
-
     /**
      * 是否调用 net.minecraft.client.particle.Particle中的tick方法
      */
     var minecraftTick: Boolean = false
-
     /**
      * @see x
      * @see y
@@ -202,14 +201,17 @@ abstract class ControlableParticle(
             ascending = value
         }
 
+
+    private var lastPreview = cloneVec(pos)
+    private var update = false
     fun teleportTo(pos: Vec3d) {
-        prevPos = this.pos
-        this.pos = pos
+        lastPreview = cloneVec(pos)
+        update = true
     }
 
     fun teleportTo(x: Double, y: Double, z: Double) {
-        prevPos = this.pos
-        this.pos = Vec3d(x, y, z)
+        lastPreview = Vec3d(x, y, z)
+        update = true
     }
 
     init {
@@ -225,8 +227,16 @@ abstract class ControlableParticle(
         if (minecraftTick) {
             super.tick()
         }
-
         controler.doTick()
+        if (update) {
+            prevPos = this.pos
+            this.pos = lastPreview
+            update = false
+        }
+    }
+
+    private fun cloneVec(vec: Vec3d): Vec3d {
+        return Vec3d(vec.x, vec.y, vec.z)
     }
 
 }
