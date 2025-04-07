@@ -54,7 +54,7 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
             val bindPlayerEntity = world!!.getPlayerByUuid(bindPlayer) ?: let {
                 return@addPreTickAction
             }
-            teleportGroupTo(bindPlayerEntity.eyePos)
+            teleportTo(bindPlayerEntity.eyePos)
             rotateToWithAngle(
                 RelativeLocation.of(bindPlayerEntity.rotationVector),
                 Math.toRadians(10.0)

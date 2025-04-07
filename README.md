@@ -57,7 +57,7 @@
 
 ```kotlin
 // 作为构造参数
-class TestEndRodEffect(val controlUUID: UUID) : ParticleEffect {
+class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
     companion object {
         @JvmStatic
         val codec: MapCodec<TestEndRodEffect> = RecordCodecBuilder.mapCodec {
@@ -131,11 +131,14 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
             withEffect({
                 // 提供ParticleEffect (在display方法中 world.addParticle)使用
                 // it类型为UUID
-                TestEndRodEffect(it) 
+                // 如果需要在这个位置设置一个ParticleGroup则使用
+                // ParticleDisplayer.withGroup(你的particleGroup)
+                ParticleDisplayer.withSingle(TestEndRodEffect(it))
             }) {
                 // kt: this is ControlableParticle
                 // java: this instanceof ControlableParticle
                 // 用于初始化粒子信息
+                // 如果参数是withGroup 则不需要实现该方法
                 color = Vector3f(230 / 255f, 130 / 255f, 60 / 255f)
                 this.maxAliveTick = this.maxAliveTick
             }
@@ -169,6 +172,8 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
 
 ```kotlin
 ClientParticleGroupManager.register(
+    // 如果这个particleGroup的 loadParticleLocations方法中输入了一个子ParticleGroup 这个子Group就无需在这注册
+    // 除非你需要ClientParticleGroupManager.addVisibleGroup(子Group)
     TestGroupClient::class.java, TestGroupClient.Provider()
 )
 ```
@@ -218,3 +223,90 @@ ServerParticleGroupManager.addParticleGroup(
 cn.coostack.particles.control.group.ControlableParticleGroup 与
 
 cn.coostack.network.particle.ServerParticleGroup
+
+
+#### ParticleGroup嵌套示例
+- 主ParticleGroup:
+```kotlin
+class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGroup(uuid) {
+
+    class Provider : ControlableParticleGroupProvider {
+        override fun createGroup(
+            uuid: UUID,
+            args: Map<String, ParticleControlerDataBuffer<*>>
+        ): ControlableParticleGroup {
+            val bindUUID = args["bindUUID"]!!.loadedValue as UUID
+            return TestGroupClient(uuid, bindUUID)
+        }
+    }
+
+    override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {
+        val r1 = 3.0
+        val r2 = 5.0
+        val w1 = -2
+        val w2 = 3
+        val scale = 1.0
+        val count = 360
+        val list = Math3DUtil.getCycloidGraphic(r1, r2, w1, w2, count, scale).onEach { it.y += 6 }
+        val map = list.associateBy {
+            withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
+                color = Vector3f(230 / 255f, 130 / 255f, 60 / 255f)
+                this.maxAliveTick = this.maxAliveTick
+            }
+        }
+        val mutable = map.toMutableMap()
+        // 获取此参数下生成图像的顶点
+        for (rel in Math3DUtil.computeCycloidVertices(r1, r2, w1, w2, count, scale)) {
+            // 在这些顶点上设置一个SubParticleGroup
+            mutable[withEffect({ u -> ParticleDisplayer.withGroup(TestSubGroupClient(u, bindPlayer)) }) {}] =
+                rel.clone()
+        }
+        return mutable
+    }
+
+
+    override fun onGroupDisplay() {
+        MinecraftClient.getInstance().player?.sendMessage(Text.of("发送粒子: ${this::class.java.name} 成功"))
+        addPreTickAction {
+            // 这种方法就是其他人看到的话粒子会显示在他们的头上而不是某个玩家的头上....
+            val bindPlayerEntity = world!!.getPlayerByUuid(bindPlayer) ?: let {
+                return@addPreTickAction
+            }
+            teleportTo(bindPlayerEntity.eyePos)
+            rotateToWithAngle(
+                RelativeLocation.of(bindPlayerEntity.rotationVector),
+                Math.toRadians(10.0)
+            )
+        }
+    }
+} 
+```
+子ParticleGroup实例
+```kotlin
+class TestSubGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGroup(uuid) {
+
+    override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {
+        val list = Math3DUtil.getCycloidGraphic(2.0, 2.0, -1, 2, 360, 1.0).onEach { it.y += 6 }
+        return list.associateBy {
+            withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
+                color = Vector3f(100 / 255f, 100 / 255f, 255 / 255f)
+                this.maxAliveTick = this.maxAliveTick
+            }
+        }
+
+    }
+
+
+    override fun onGroupDisplay() {
+        addPreTickAction {
+            val bindPlayerEntity = world!!.getPlayerByUuid(bindPlayer) ?: let {
+                return@addPreTickAction
+            }
+            rotateToWithAngle(
+                RelativeLocation.of(bindPlayerEntity.rotationVector),
+                Math.toRadians(-10.0)
+            )
+        }
+    }
+}
+```
