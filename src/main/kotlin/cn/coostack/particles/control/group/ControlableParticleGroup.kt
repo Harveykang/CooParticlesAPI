@@ -55,10 +55,11 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
     var displayed = false
 
     /**
-     * value代表的是 ParticleControler的初始化函数
-     * @see ParticleControler.initInvoker value最终赋值到这里
+     * key代表的是 ParticleControler的初始化函数
+     * @see ParticleControler.initInvoker key最终赋值到这里
+     * 考虑到不同的粒子可能会存在于相同的位置，因此做此修改
      */
-    abstract fun loadParticleLocations(): Map<RelativeLocation, ParticleRelativeData>
+    abstract fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation>
 
     /**
      * 每次客户端更新可见时都会执行一次这个方法
@@ -97,7 +98,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) {
         this.origin = pos
         this.world = world
         displayed = true
-        for ((rl, v) in particleRelativeLocations) {
+        for ((v, rl) in particleRelativeLocations) {
             val uuid = UUID.randomUUID()
             val controler = ControlParticleManager.createControl(uuid)
             controler.initInvoker = v.invoker

@@ -1,5 +1,7 @@
 package cn.coostack
 
+import cn.coostack.config.APIConfig
+import cn.coostack.config.APIConfigManager
 import cn.coostack.items.CooItems
 import cn.coostack.items.group.CooItemGroup
 import cn.coostack.network.packet.PacketParticleGroupS2C
@@ -21,7 +23,6 @@ object CooParticleAPI : ModInitializer {
 
     const val MOD_ID = "cooparticleapi"
 
-    const val MAX_PARTICLE_COUNT = 65536
 
     lateinit var server: MinecraftServer
 
@@ -53,6 +54,7 @@ object CooParticleAPI : ModInitializer {
     override fun onInitialize() {
         CooItemGroup.reg()
         CooItems.reg()
+        APIConfigManager.loadConfig()
         ServerTickEvents.START_SERVER_TICK.register { _ ->
             ServerParticleGroupManager.upgrade()
         }

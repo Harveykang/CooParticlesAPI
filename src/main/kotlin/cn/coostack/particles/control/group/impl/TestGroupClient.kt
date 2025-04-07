@@ -23,14 +23,15 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
         }
     }
 
-    override fun loadParticleLocations(): Map<RelativeLocation, ParticleRelativeData> {
+    override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {
         val list = Math3DUtil.getCycloidGraphic(3.0, 5.0, 2, -3, 360, 0.2).onEach { it.y += 6 }
-        return list.associateWith {
+        return list.associateBy {
             withEffect({ TestEndRodEffect(it) }) {
                 color = Vector3f(230 / 255f, 130 / 255f, 60 / 255f)
                 this.maxAliveTick = this.maxAliveTick
             }
         }
+
     }
 
 

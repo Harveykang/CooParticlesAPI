@@ -124,15 +124,14 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
     }
 
     // 魔法阵粒子组合
-    override fun loadParticleLocations(): Map<RelativeLocation, ParticleRelativeData> {
+    override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {
         // 在XZ平面的魔法阵
         val list = Math3DUtil.getCycloidGraphic(3.0, 5.0, 2, -3, 360, 0.2).onEach { it.y += 6 }
-        // 
-        return list.associateWith {
+        return list.associateBy {
             withEffect({
                 // 提供ParticleEffect (在display方法中 world.addParticle)使用
                 // it类型为UUID
-                TestEndRodEffect(it)
+                TestEndRodEffect(it) 
             }) {
                 // this is ControlableParticle
                 // 用于初始化粒子信息

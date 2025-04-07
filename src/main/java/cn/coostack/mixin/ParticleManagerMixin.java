@@ -2,6 +2,7 @@ package cn.coostack.mixin;
 
 
 import cn.coostack.CooParticleAPI;
+import cn.coostack.config.APIConfigManager;
 import com.google.common.collect.EvictingQueue;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
@@ -24,13 +25,18 @@ public abstract class ParticleManagerMixin {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Ljava/util/Queue;poll()Ljava/lang/Object;"))
     public Object changeMaxParticles(Queue<Object> queue) {
-        Particle particle;
-        while ((particle = this.getNewParticles().poll()) != null) {
-            Map<ParticleTextureSheet, Queue<Particle>> particles = this.getParticles();
-            particles.computeIfAbsent(particle.getType(),
-                            sheet -> EvictingQueue.create(CooParticleAPI.MAX_PARTICLE_COUNT))
-                    .add(particle);
+        if (APIConfigManager.getConfig().getEnabledParticleCountInject()) {
+            Particle particle;
+            while ((particle = this.getNewParticles().poll()) != null) {
+                Map<ParticleTextureSheet, Queue<Particle>> particles = this.getParticles();
+                particles.computeIfAbsent(particle.getType(),
+                                sheet -> EvictingQueue.create(APIConfigManager.getConfig().getParticleCountLimit()))
+                        .add(particle);
+            }
+            return null;
+        } else {
+            // 恢复原来的功能
+            return this.getNewParticles().poll();
         }
-        return null;
     }
 }
