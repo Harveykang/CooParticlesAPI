@@ -5,7 +5,7 @@ import cn.coostack.network.buffer.ParticleControlerDataBuffers
 import net.minecraft.server.network.ServerPlayerEntity
 import java.util.*
 
-class TestParticleGroup(private val bindPlayer: ServerPlayerEntity) : ServerParticleGroup(UUID.randomUUID(), 16.0) {
+class TestParticleGroup(private val bindPlayer: ServerPlayerEntity) : ServerParticleGroup(16.0) {
     override fun tick() {
         withPlayerStats(bindPlayer)
         setPosOnServer(bindPlayer.eyePos)

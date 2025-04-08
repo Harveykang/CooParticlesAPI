@@ -25,7 +25,7 @@ class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticl
     /**
      * 参数缓存 (tick等)
      */
-    val bufferedData = ConcurrentHashMap<String, ParticleControlerDataBuffer<*>>()
+    val bufferedData = ConcurrentHashMap<String, Any>()
     lateinit var initInvoker: ControlableParticle.() -> Unit
 
     fun addPreTickAction(action: ControlableParticle.() -> Unit): ParticleControler {

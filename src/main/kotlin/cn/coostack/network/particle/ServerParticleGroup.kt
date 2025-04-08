@@ -20,9 +20,9 @@ import java.util.UUID
  * @param visibleRange 玩家可见范围 （origin)
  */
 abstract class ServerParticleGroup(
-    val uuid: UUID,
     var visibleRange: Double = 32.0
 ) {
+    val uuid: UUID = UUID.randomUUID()
     var pos: Vec3d = Vec3d.ZERO
         internal set
     var world: World? = null

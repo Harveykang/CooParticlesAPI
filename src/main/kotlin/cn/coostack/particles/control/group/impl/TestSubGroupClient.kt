@@ -15,7 +15,7 @@ class TestSubGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticle
         return list.associateBy {
             withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
                 color = Vector3f(100 / 255f, 100 / 255f, 255 / 255f)
-                this.maxAliveTick = this.maxAliveTick
+                this.maxAge = maxTick
             }
         }
 

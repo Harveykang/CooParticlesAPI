@@ -1,8 +1,10 @@
 package cn.coostack.items
 
 import cn.coostack.network.buffer.ParticleControlerDataBuffers
+import cn.coostack.network.particle.ScaleCircleGroupServer
 import cn.coostack.network.particle.ServerParticleGroupManager
 import cn.coostack.network.particle.TestParticleGroup
+import cn.coostack.particles.control.group.impl.ScaleCircleGroupClient
 import cn.coostack.particles.control.group.impl.TestGroupClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
@@ -19,9 +21,9 @@ class TestParticleItem(settings: Settings) : Item(settings) {
         if (world.isClient) {
             return TypedActionResult.success(user.getStackInHand(hand))
         }
-        val serverGroup = TestParticleGroup(user as ServerPlayerEntity)
+        val serverGroup = ScaleCircleGroupServer(user as ServerPlayerEntity)
         ServerParticleGroupManager.addParticleGroup(
-            TestGroupClient::class.java, serverGroup, user.pos, world as ServerWorld
+            ScaleCircleGroupClient::class.java, serverGroup, user.pos, world as ServerWorld
         )
         return super.use(world, user, hand)
     }

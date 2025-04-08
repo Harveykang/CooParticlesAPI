@@ -2,14 +2,10 @@ package cn.coostack.particles
 
 import cn.coostack.particles.control.ControlParticleManager
 import cn.coostack.particles.control.ParticleControler
-import cn.coostack.test.util.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.particle.Particle
-import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.client.particle.SpriteBillboardParticle
 import net.minecraft.client.world.ClientWorld
-import net.minecraft.particle.ParticleEffect
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.random.Random
@@ -30,6 +26,7 @@ abstract class ControlableParticle(
      * 是否调用 net.minecraft.client.particle.Particle中的tick方法
      */
     var minecraftTick: Boolean = false
+
     /**
      * @see x
      * @see y
@@ -125,20 +122,12 @@ abstract class ControlableParticle(
     /**
      * @see age
      */
-    var currentTick: Int
+    var currentAge: Int
         get() = age
         set(value) {
             age = value
         }
 
-    /**
-     * @see maxAge
-     */
-    var maxAliveTick: Int
-        get() = maxAge
-        set(value) {
-            maxAge = value
-        }
 
     /**
      * @see gravityStrength

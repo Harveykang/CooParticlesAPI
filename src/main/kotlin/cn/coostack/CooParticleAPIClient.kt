@@ -4,6 +4,7 @@ import cn.coostack.network.packet.PacketParticleGroupS2C
 import cn.coostack.network.packet.client.listener.ClientParticleGroupPacketHandler
 import cn.coostack.particles.ModParticles
 import cn.coostack.particles.control.group.ClientParticleGroupManager
+import cn.coostack.particles.control.group.impl.ScaleCircleGroupClient
 import cn.coostack.particles.control.group.impl.TestGroupClient
 import cn.coostack.particles.impl.TestEndRodParticle
 import net.fabricmc.api.ClientModInitializer
@@ -29,6 +30,9 @@ object CooParticleAPIClient : ClientModInitializer {
             })
         ClientParticleGroupManager.register(
             TestGroupClient::class.java, TestGroupClient.Provider()
+        )
+        ClientParticleGroupManager.register(
+            ScaleCircleGroupClient::class.java, ScaleCircleGroupClient.Provider()
         )
         ModParticles.reg()
     }

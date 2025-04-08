@@ -17,12 +17,13 @@ class TestEndRodParticle(
     val provider: SpriteProvider
 ) :
     ControlableParticle(world, pos, velocity, controlUUID) {
+
     override fun getType(): ParticleTextureSheet {
         return ParticleTextureSheet.PARTICLE_SHEET_OPAQUE
     }
 
     init {
-        setSprite(provider.getSprite(0,120))
+        setSprite(provider.getSprite(age, maxAge))
         controler.addPreTickAction {
             setSpriteForAge(provider)
         }

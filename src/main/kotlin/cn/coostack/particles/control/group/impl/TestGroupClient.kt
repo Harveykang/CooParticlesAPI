@@ -35,7 +35,7 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
         val map = list.associateBy {
             withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
                 color = Vector3f(230 / 255f, 130 / 255f, 60 / 255f)
-                this.maxAliveTick = this.maxAliveTick
+                maxAge = maxTick
             }
         }
         val mutable = map.toMutableMap()

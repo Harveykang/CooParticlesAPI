@@ -9,11 +9,8 @@ import cn.coostack.test.util.Math3DUtil
 import cn.coostack.test.util.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.world.ClientWorld
-import net.minecraft.particle.ParticleEffect
 import net.minecraft.util.math.Vec3d
-import java.util.HashMap
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -116,6 +113,9 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
             }
             val toPos = Vec3d(pos.x + rl.x, pos.y + rl.y, pos.z + rl.z)
             val controler = particleDisplayer.display(toPos, world) ?: continue
+            if (controler is ParticleControler) {
+                v.controlerAction(controler)
+            }
 //            world.addParticle(
 //                v.effect(uuid), pos.x + rl.x, pos.y + rl.y, pos.z + rl.z, 0.0, 0.0, 0.0
 //            )
@@ -175,9 +175,8 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
 
     @Deprecated("使用 teleportTo")
     fun teleportGroupTo(pos: Vec3d) {
-        val relativeMapper = particlesLocations
         this.origin = pos
-        relativeMapper.forEach { (t, u) ->
+        particlesLocations.forEach { (t, u) ->
             t.teleportTo(u.x + pos.x, u.y + pos.y, u.z + pos.z)
         }
     }
@@ -206,5 +205,11 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     class ParticleRelativeData(
         val effect: (UUID) -> ParticleDisplayer,
         val invoker: ControlableParticle.() -> Unit
-    )
+    ) {
+        var controlerAction: (ParticleControler) -> Unit = {}
+        fun withControler(controler: (ParticleControler) -> Unit): ParticleRelativeData {
+            controlerAction = controler
+            return this
+        }
+    }
 }
