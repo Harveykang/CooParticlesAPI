@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "cooparticleapi",
+	"id": "cooparticlesapi",
 	"version": "${version}",
 	"name": "CooParticleAPI",
 	"description": "此插件会修改粒子个数上限(使用mixin) 如果存在其他插件也使用了类似的方法可能会冲突",

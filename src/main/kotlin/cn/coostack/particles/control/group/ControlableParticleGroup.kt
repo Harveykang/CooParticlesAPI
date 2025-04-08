@@ -96,6 +96,17 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
             (it.value.getControlObject() as ControlableParticleGroup).tick()
         }
     }
+    /**
+     * 清除所有粒子并且重新按照相对位置渲染
+     */
+    fun flush() {
+        // 即使flush也不会被处理
+        // 如果没有display则不会出现origin world数据 因此也就无法进行操作
+        if (canceled || !valid || !displayed) return
+        clearParticles()
+        valid = true
+        displayParticles(origin, world!!)
+    }
 
     fun display(pos: Vec3d, world: ClientWorld) {
         if (displayed) {
@@ -104,26 +115,10 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         this.origin = pos
         this.world = world
         displayed = true
-        for ((v, rl) in loadParticleLocations()) {
-            val uuid = UUID.randomUUID()
-            val particleDisplayer = v.effect(uuid)
-            if (particleDisplayer is ParticleDisplayer.SingleParticleDisplayer) {
-                val controler = ControlParticleManager.createControl(uuid)
-                controler.initInvoker = v.invoker
-            }
-            val toPos = Vec3d(pos.x + rl.x, pos.y + rl.y, pos.z + rl.z)
-            val controler = particleDisplayer.display(toPos, world) ?: continue
-            if (controler is ParticleControler) {
-                v.controlerAction(controler)
-            }
-//            world.addParticle(
-//                v.effect(uuid), pos.x + rl.x, pos.y + rl.y, pos.z + rl.z, 0.0, 0.0, 0.0
-//            )
-            particles[uuid] = controler
-            particlesLocations[controler] = rl
-        }
+        displayParticles(pos, world)
         onGroupDisplay()
     }
+
 
     override fun rotateParticlesToPoint(to: RelativeLocation) {
         if (!displayed) {
@@ -200,6 +195,24 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     protected fun addPreTickAction(action: (ControlableParticleGroup) -> Unit): ControlableParticleGroup {
         invokeQueue.add(action)
         return this
+    }
+
+    private fun displayParticles(pos: Vec3d, world: ClientWorld) {
+        for ((v, rl) in loadParticleLocations()) {
+            val uuid = UUID.randomUUID()
+            val particleDisplayer = v.effect(uuid)
+            if (particleDisplayer is ParticleDisplayer.SingleParticleDisplayer) {
+                val controler = ControlParticleManager.createControl(uuid)
+                controler.initInvoker = v.invoker
+            }
+            val toPos = Vec3d(pos.x + rl.x, pos.y + rl.y, pos.z + rl.z)
+            val controler = particleDisplayer.display(toPos, world) ?: continue
+            if (controler is ParticleControler) {
+                v.controlerAction(controler)
+            }
+            particles[uuid] = controler
+            particlesLocations[controler] = rl
+        }
     }
 
     class ParticleRelativeData(
