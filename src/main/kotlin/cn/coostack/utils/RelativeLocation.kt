@@ -69,6 +69,12 @@ data class RelativeLocation(var x: Double, var y: Double, var z: Double) {
         z += other.z
         return this
     }
+    fun remove(other: RelativeLocation): RelativeLocation {
+        x -= other.x
+        y -= other.y
+        z -= other.z
+        return this
+    }
 
     operator fun times(scalar: Double): RelativeLocation {
         return RelativeLocation(x * scalar, y * scalar, z * scalar)

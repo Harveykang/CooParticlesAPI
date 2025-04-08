@@ -238,6 +238,14 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
             val bindUUID = args["bindUUID"]!!.loadedValue as UUID
             return TestGroupClient(uuid, bindUUID)
         }
+
+        /**
+         * 当ServerParticleGroup被调用change方法时， 在这里对group进行应用
+         * 位于PacketParticleGroupS2C.PacketArgsType为key的所有参数 无需在这处理
+         * 但是也会作为args参数输入
+         */
+        override fun changeGroup(group: ControlableParticleGroup, args: Map<String, ParticleControlerDataBuffer<*>>) {
+        }
     }
 
     override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {

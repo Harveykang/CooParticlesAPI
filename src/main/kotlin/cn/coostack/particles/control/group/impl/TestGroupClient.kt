@@ -22,6 +22,9 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
             val bindUUID = args["bindUUID"]!!.loadedValue as UUID
             return TestGroupClient(uuid, bindUUID)
         }
+
+        override fun changeGroup(group: ControlableParticleGroup, args: Map<String, ParticleControlerDataBuffer<*>>) {
+        }
     }
 
     override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {

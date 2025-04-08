@@ -63,6 +63,7 @@ abstract class ServerParticleGroup(
      */
     abstract fun otherPacketArgs(): Map<String, ParticleControlerDataBuffer<out Any>>
 
+
     /**
      * 当粒子组合在服务器创建并且发送到客户端时执行
      * 可以给客户端发送一些包修改
@@ -140,20 +141,11 @@ abstract class ServerParticleGroup(
     }
 
     fun setAxis(axis: Vec3d) {
-        this.axis = RelativeLocation.of(axis)
-        // 发包同步客户端
-        world ?: return
-        val visible = ServerParticleGroupManager.filterVisiblePlayer(this)
-        visible.forEach {
-            val player = world!!.getPlayerByUuid(it) ?: return@forEach
-            // 发销毁包
-            val packet = PacketParticleGroupS2C(
-                uuid, ControlType.CHANGE, mapOf(
-                    PacketParticleGroupS2C.PacketArgsType.AXIS.toArgsName to ParticleControlerDataBuffers.vec3d(axis)
-                )
+        change(
+            { this.axis = RelativeLocation.of(axis) }, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.AXIS.toArgsName to ParticleControlerDataBuffers.vec3d(axis)
             )
-            ServerPlayNetworking.send(player as ServerPlayerEntity, packet)
-        }
+        )
     }
 
     /**
@@ -176,89 +168,66 @@ abstract class ServerParticleGroup(
      */
     fun teleportGroupTo(pos: Vec3d) {
         // 发包告知 所有可见客户端
-        this.pos = pos
-        world ?: return
-        val visible = ServerParticleGroupManager.filterVisiblePlayer(this)
-        visible.forEach {
-            val player = world!!.getPlayerByUuid(it) ?: return@forEach
-            // 发销毁包
-            val packet = PacketParticleGroupS2C(
-                uuid, ControlType.CHANGE, mapOf(
-                    PacketParticleGroupS2C.PacketArgsType.POS.toArgsName to ParticleControlerDataBuffers.vec3d(pos)
-                )
+        change(
+            { this.pos = pos }, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.POS.toArgsName to ParticleControlerDataBuffers.vec3d(pos)
             )
-            ServerPlayNetworking.send(player as ServerPlayerEntity, packet)
-        }
+        )
     }
 
     /**
      * 出现了一些控制类之外的旋转
      */
     fun rotateParticlesAsAxis(angle: Double) {
-        world ?: return
-        val visible = ServerParticleGroupManager.filterVisiblePlayer(this)
-        visible.forEach {
-            val player = world!!.getPlayerByUuid(it) ?: return@forEach
-            // 发销毁包
-            val packet = PacketParticleGroupS2C(
-                uuid, ControlType.CHANGE, mapOf(
-                    PacketParticleGroupS2C.PacketArgsType.ROTATE_AXIS.toArgsName to ParticleControlerDataBuffers.double(
-                        angle
-                    )
+        change(
+            {}, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.ROTATE_AXIS.toArgsName to ParticleControlerDataBuffers.double(
+                    angle
                 )
             )
-            ServerPlayNetworking.send(player as ServerPlayerEntity, packet)
-        }
+        )
     }
 
     /**
      * 出现了一些控制类之外的旋转
      */
     fun rotateParticlesToPoint(to: Vec3d) {
-        world ?: return
-        val visible = ServerParticleGroupManager.filterVisiblePlayer(this)
-        visible.forEach {
-            val player = world!!.getPlayerByUuid(it) ?: return@forEach
-            // 发销毁包
-            val packet = PacketParticleGroupS2C(
-                uuid, ControlType.CHANGE, mapOf(
-                    PacketParticleGroupS2C.PacketArgsType.ROTATE_TO.toArgsName to ParticleControlerDataBuffers.vec3d(to)
-                )
+        change(
+            {}, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.ROTATE_TO.toArgsName to ParticleControlerDataBuffers.vec3d(to)
             )
-            ServerPlayNetworking.send(player as ServerPlayerEntity, packet)
-        }
+        )
     }
 
     fun changeTick(tick: Int) {
-        this.clientTick = tick
-        world ?: return
-        val visible = ServerParticleGroupManager.filterVisiblePlayer(this)
-        visible.forEach {
-            val player = world!!.getPlayerByUuid(it) ?: return@forEach
-            // 发销毁包
-            val packet = PacketParticleGroupS2C(
-                uuid, ControlType.CHANGE, mapOf(
-                    PacketParticleGroupS2C.PacketArgsType.CURRENT_TICK.toArgsName to ParticleControlerDataBuffers.int(
-                        tick
-                    )
+        change(
+            { clientTick = tick }, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.CURRENT_TICK.toArgsName to ParticleControlerDataBuffers.int(
+                    tick
                 )
             )
-            ServerPlayNetworking.send(player as ServerPlayerEntity, packet)
-        }
+        )
     }
 
     fun changeMaxTick(tick: Int) {
-        this.clientMaxTick = tick
+        change(
+            { this.maxTick = tick }, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.MAX_TICK.toArgsName to ParticleControlerDataBuffers.int(tick)
+            )
+        )
+    }
+
+    /**
+     * 发送行为修改包
+     * @param toggleMethod 修改Server层的参数的方法 如果不用此修改方法则会导致其他客户端渲染不同步
+     */
+    fun change(toggleMethod: ServerParticleGroup.() -> Unit, args: Map<String, ParticleControlerDataBuffer<*>>) {
         world ?: return
         val visible = ServerParticleGroupManager.filterVisiblePlayer(this)
+        toggleMethod(this)
         visible.forEach {
             val player = world!!.getPlayerByUuid(it) ?: return@forEach
-            // 发销毁包
-            val packet = PacketParticleGroupS2C(
-                uuid, ControlType.CHANGE, mapOf(
-                    PacketParticleGroupS2C.PacketArgsType.MAX_TICK.toArgsName to ParticleControlerDataBuffers.int(tick)
-                )
-            )
+            val packet = PacketParticleGroupS2C(uuid, ControlType.CHANGE, args)
             ServerPlayNetworking.send(player as ServerPlayerEntity, packet)
         }
     }

@@ -83,6 +83,10 @@ object ClientParticleGroupPacketHandler : ClientPlayNetworking.PlayPayloadHandle
                 isAccessible = true
             }.invoke(targetGroup)
         }
+
+        ClientParticleGroupManager.getBuilder(targetGroup::class.java)?.changeGroup(
+            targetGroup, args
+        )
     }
 
     private fun handleRemove(groupUUID: UUID) {
