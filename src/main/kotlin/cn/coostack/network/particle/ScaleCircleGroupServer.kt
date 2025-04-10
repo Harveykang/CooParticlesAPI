@@ -7,7 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import java.util.*
 
-class ScaleCircleGroupServer(private val bindPlayer: ServerPlayerEntity, visibleRange: Double = 32.0) :
+class ScaleCircleGroupServer(private val bindPlayerUUID: UUID, visibleRange: Double = 32.0) :
     ServerParticleGroup(visibleRange) {
     private var anTick = 0
     private var anMaxTick = 30
@@ -18,15 +18,24 @@ class ScaleCircleGroupServer(private val bindPlayer: ServerPlayerEntity, visible
     }
 
     override fun tick() {
+        val bindPlayer = world!!.getPlayerByUuid(bindPlayerUUID) ?: let {
+            kill()
+            return
+        }
         doTickAlive()
         if (anTick++ >= anMaxTick) {
             anTick = anMaxTick
         }
-        teleportGroupTo(bindPlayer.pos)
+        setPosOnServer(bindPlayer.pos)
+        withPlayerStats(bindPlayer as ServerPlayerEntity)
     }
 
     override fun onTickAliveDeath() {
-        val group = TestParticleGroup(bindPlayer)
+        val bindPlayer = world!!.getPlayerByUuid(bindPlayerUUID) ?: let {
+            kill()
+            return
+        }
+        val group = TestParticleGroup(bindPlayerUUID)
         ServerParticleGroupManager.addParticleGroup(
             TestGroupClient::class.java,
             group,
@@ -37,7 +46,7 @@ class ScaleCircleGroupServer(private val bindPlayer: ServerPlayerEntity, visible
 
     override fun otherPacketArgs(): Map<String, ParticleControlerDataBuffer<out Any>> {
         return mapOf(
-            "bind_player" to ParticleControlerDataBuffers.uuid(bindPlayer.uuid),
+            "bind_player" to ParticleControlerDataBuffers.uuid(bindPlayerUUID),
             "an_tick" to ParticleControlerDataBuffers.int(anTick),
             "tick" to ParticleControlerDataBuffers.int(tick),
             "max_tick" to ParticleControlerDataBuffers.int(maxTick)

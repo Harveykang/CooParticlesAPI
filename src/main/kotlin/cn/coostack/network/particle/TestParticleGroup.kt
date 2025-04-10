@@ -5,15 +5,19 @@ import cn.coostack.network.buffer.ParticleControlerDataBuffers
 import net.minecraft.server.network.ServerPlayerEntity
 import java.util.*
 
-class TestParticleGroup(private val bindPlayer: ServerPlayerEntity) : ServerParticleGroup(16.0) {
+class TestParticleGroup(private val bindPlayerUUID: UUID) : ServerParticleGroup(16.0) {
     override fun tick() {
-        withPlayerStats(bindPlayer)
+        val bindPlayer = world!!.getPlayerByUuid(bindPlayerUUID)?: let {
+            kill()
+            return
+        }
+        withPlayerStats(bindPlayer as ServerPlayerEntity)
         setPosOnServer(bindPlayer.eyePos)
     }
 
     override fun otherPacketArgs(): Map<String, ParticleControlerDataBuffer<out Any>> {
         return mapOf(
-            "bindUUID" to ParticleControlerDataBuffers.uuid(bindPlayer.uuid)
+            "bindUUID" to ParticleControlerDataBuffers.uuid(bindPlayerUUID)
         )
     }
 }

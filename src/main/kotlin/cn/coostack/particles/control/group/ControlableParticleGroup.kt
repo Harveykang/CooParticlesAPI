@@ -108,6 +108,8 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         displayParticles(origin, world!!)
     }
 
+
+
     fun display(pos: Vec3d, world: ClientWorld) {
         if (displayed) {
             return

@@ -220,6 +220,7 @@ abstract class ServerParticleGroup(
     /**
      * 发送行为修改包
      * @param toggleMethod 修改Server层的参数的方法 如果不用此修改方法则会导致其他客户端渲染不同步
+     * @param args 此参数出现过的键 必须在otherPacketArgs方法返回的args中存在 否则任然会存在同步问题
      */
     fun change(toggleMethod: ServerParticleGroup.() -> Unit, args: Map<String, ParticleControlerDataBuffer<*>>) {
         world ?: return

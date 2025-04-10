@@ -21,7 +21,7 @@ class TestParticleItem(settings: Settings) : Item(settings) {
         if (world.isClient) {
             return TypedActionResult.success(user.getStackInHand(hand))
         }
-        val serverGroup = ScaleCircleGroupServer(user as ServerPlayerEntity)
+        val serverGroup = ScaleCircleGroupServer(user.uuid)
         ServerParticleGroupManager.addParticleGroup(
             ScaleCircleGroupClient::class.java, serverGroup, user.pos, world as ServerWorld
         )

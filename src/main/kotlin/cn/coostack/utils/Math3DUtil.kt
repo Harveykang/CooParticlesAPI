@@ -11,7 +11,6 @@ object Math3DUtil {
         return Vector3f(x.toFloat() / 255, y.toFloat() / 255, z.toFloat() / 255)
     }
 
-
     /**
      * DeepSeek解放大脑
      * @see getCycloidGraphic 获取此函数生成的图像的顶点
@@ -225,6 +224,37 @@ object Math3DUtil {
         // cos(*) = dot / (l * yl)
         // 90 - acos(dot/(l * yl))
         return Math.toRadians(90.0) - acos(dot / l)
+    }
+
+    /**
+     * 获取在start-end线段内的count个点集合
+     */
+    fun getLineLocations(start: Vec3d, end: Vec3d, count: Int): List<RelativeLocation> {
+        val origin = RelativeLocation.of(start)
+        val res = mutableListOf(origin)
+        val step = start.distanceTo(end) / count
+        val direction = start.relativize(end).normalize().multiply(step)
+        val relativeDirection = RelativeLocation.of(direction)
+        for (i in 2..count) {
+            val next = origin + relativeDirection
+            res.add(next)
+        }
+        return res
+    }
+
+    /**
+     * 获取 从origin 向 direction方向的射线上 每个间距为 step 且总数量为count的点集合
+     */
+    fun getLineLocations(origin: Vec3d, direction: Vec3d, step: Double, count: Int): List<RelativeLocation> {
+        val originRel = RelativeLocation.of(origin)
+        val res = mutableListOf(originRel)
+        val relativeDirection =
+            RelativeLocation.of(Vec3d(direction.x, direction.y, direction.z).normalize().multiply(step))
+        for (i in 2..count) {
+            val next = originRel + relativeDirection
+            res.add(next)
+        }
+        return res
     }
 
     /**
