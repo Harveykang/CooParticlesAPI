@@ -205,6 +205,11 @@ class TestParticleGroup(private val bindPlayer: ServerPlayerEntity) :
             "bindUUID" to ParticleControlerDataBuffers.uuid(bindPlayer.uuid)
         )
     }
+    
+    override fun getClientType(): Class<out ControlableParticleGroup>{
+        return TestGroupClient::class.java
+    }
+    
 }
 ```
 
@@ -213,7 +218,6 @@ class TestParticleGroup(private val bindPlayer: ServerPlayerEntity) :
 ```kotlin
 val serverGroup = TestParticleGroup(user as ServerPlayerEntity)
 ServerParticleGroupManager.addParticleGroup(
-    TestGroupClient::class.java,
     //                      world必须是ServerWorld
     serverGroup, user.pos, world as ServerWorld
 )
