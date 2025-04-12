@@ -62,6 +62,15 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
      */
     abstract fun onGroupDisplay()
 
+    /**
+     * 在display之前 (获取location) 执行的方法
+     * 方便防止出现第一帧的卡顿
+     * 是对location的二次微调
+     *
+     * 此时 displayed = true
+     */
+    open fun beforeDisplay(locations: Map<ParticleRelativeData, RelativeLocation>) {
+    }
 
     fun withEffect(effect: (UUID) -> ParticleDisplayer, invoker: ControlableParticle.() -> Unit): ParticleRelativeData =
         ParticleRelativeData(effect, invoker)
@@ -96,6 +105,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
             (it.value.getControlObject() as ControlableParticleGroup).tick()
         }
     }
+
     /**
      * 清除所有粒子并且重新按照相对位置渲染
      */
@@ -105,9 +115,9 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         if (canceled || !valid || !displayed) return
         clearParticles()
         valid = true
+        axis = RelativeLocation(0.0, 1.0, 0.0)
         displayParticles(origin, world!!)
     }
-
 
 
     fun display(pos: Vec3d, world: ClientWorld) {
@@ -186,6 +196,10 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         teleportGroupTo(Vec3d(x, y, z))
     }
 
+    override fun remove() {
+        clearParticles()
+    }
+
     override fun getControlObject(): ControlableParticleGroup {
         return this
     }
@@ -200,7 +214,9 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     }
 
     private fun displayParticles(pos: Vec3d, world: ClientWorld) {
-        for ((v, rl) in loadParticleLocations()) {
+        val locations = loadParticleLocations()
+        beforeDisplay(locations)
+        for ((v, rl) in locations) {
             val uuid = UUID.randomUUID()
             val particleDisplayer = v.effect(uuid)
             if (particleDisplayer is ParticleDisplayer.SingleParticleDisplayer) {

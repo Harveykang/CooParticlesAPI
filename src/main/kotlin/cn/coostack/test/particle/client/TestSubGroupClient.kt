@@ -1,4 +1,4 @@
-package cn.coostack.particles.control.group.impl
+package cn.coostack.test.particle.client
 
 import cn.coostack.particles.ParticleDisplayer
 import cn.coostack.particles.control.group.ControlableParticleGroup

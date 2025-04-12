@@ -7,7 +7,6 @@ import cn.coostack.network.packet.PacketParticleGroupS2C.PacketArgsType
 import cn.coostack.particles.control.ControlType
 import cn.coostack.particles.control.group.ControlableParticleGroup
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
@@ -27,31 +26,27 @@ object ServerParticleGroupManager {
      */
     internal val visible = ConcurrentHashMap<UUID, MutableSet<ServerParticleGroup>>()
 
-    fun addParticleGroup(
-        groupType: Class<out ControlableParticleGroup>,
-        group: ServerParticleGroup,
-        pos: Vec3d,
-        world: ServerWorld,
-        maxTick: Int,
-    ) {
-        group.clientMaxTick = maxTick
-        addParticleGroup(groupType, group, pos, world)
-    }
 
     fun addParticleGroup(
-        groupType: Class<out ControlableParticleGroup>,
         group: ServerParticleGroup,
         pos: Vec3d,
         world: ServerWorld
     ) {
         serverGroups[group.uuid] = group
-        group.clientGroup = groupType
         group.initServerGroup(pos, world)
         world.players.filter { it.pos.distanceTo(pos) <= group.visibleRange }
             .forEach { receiver ->
                 addGroupPlayerView(receiver, group)
             }
         group.onGroupDisplay(pos, world)
+    }
+
+    fun getParticleGroup(group: UUID): ServerParticleGroup? {
+        return serverGroups[group]
+    }
+
+    fun getGroups(): Map<UUID, ServerParticleGroup> {
+        return Collections.unmodifiableMap(serverGroups)
     }
 
     fun upgrade() {
@@ -176,7 +171,7 @@ object ServerParticleGroupManager {
             ControlType.CREATE,
             mutableMapOf(
                 PacketArgsType.POS.toArgsName to ParticleControlerDataBuffers.vec3d(targetGroup.pos),
-                PacketArgsType.GROUP_TYPE.toArgsName to ParticleControlerDataBuffers.string(targetGroup.clientGroup!!.name),
+                PacketArgsType.GROUP_TYPE.toArgsName to ParticleControlerDataBuffers.string(targetGroup.getClientType()!!.name),
                 PacketArgsType.CURRENT_TICK.toArgsName to ParticleControlerDataBuffers.int(targetGroup.clientTick),
                 PacketArgsType.MAX_TICK.toArgsName to ParticleControlerDataBuffers.int(targetGroup.clientMaxTick),
             ).apply {

@@ -29,8 +29,6 @@ abstract class ServerParticleGroup(
         internal set
     var valid = true
         internal set
-    var clientGroup: Class<out ControlableParticleGroup>? = null
-        internal set
     var canceled = false
         internal set
 
@@ -62,6 +60,12 @@ abstract class ServerParticleGroup(
      * 获取自定义包的其他参数 (用于服务器传输给客户端)
      */
     abstract fun otherPacketArgs(): Map<String, ParticleControlerDataBuffer<out Any>>
+
+    /**
+     * 获取对应的客户端层Class
+     * @return null 不能单独生成的类型
+     */
+    abstract fun getClientType(): Class<out ControlableParticleGroup>?
 
 
     /**

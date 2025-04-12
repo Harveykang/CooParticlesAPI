@@ -85,6 +85,10 @@ class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticl
         particle.teleportTo(x, y, z)
     }
 
+    override fun remove() {
+        particle.markDead()
+    }
+
     override fun getControlObject(): ControlableParticle {
         return particle
     }

@@ -4,15 +4,15 @@ import cn.coostack.network.packet.PacketParticleGroupS2C
 import cn.coostack.network.packet.client.listener.ClientParticleGroupPacketHandler
 import cn.coostack.particles.ModParticles
 import cn.coostack.particles.control.group.ClientParticleGroupManager
-import cn.coostack.particles.control.group.impl.ScaleCircleGroupClient
-import cn.coostack.particles.control.group.impl.TestGroupClient
 import cn.coostack.particles.impl.TestEndRodParticle
+import cn.coostack.test.particle.client.ScaleCircleGroupClient
+import cn.coostack.test.particle.client.TestGroupClient
+import cn.coostack.test.particle.client.BarrierSwordGroupClient
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry
-import org.slf4j.LoggerFactory
 
 object CooParticleAPIClient : ClientModInitializer {
 
@@ -33,6 +33,9 @@ object CooParticleAPIClient : ClientModInitializer {
         )
         ClientParticleGroupManager.register(
             ScaleCircleGroupClient::class.java, ScaleCircleGroupClient.Provider()
+        )
+        ClientParticleGroupManager.register(
+            BarrierSwordGroupClient::class.java, BarrierSwordGroupClient.Provider()
         )
         ModParticles.reg()
     }

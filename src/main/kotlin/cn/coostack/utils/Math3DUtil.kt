@@ -236,8 +236,10 @@ object Math3DUtil {
         val step = start.distanceTo(end) / count
         val direction = start.relativize(end).normalize().multiply(step)
         val relativeDirection = RelativeLocation.of(direction)
+        var next = origin
         for (i in 2..count) {
-            val next = origin + relativeDirection
+            val pos = next + relativeDirection
+            next = pos.clone()
             res.add(next)
         }
         return res
@@ -251,8 +253,10 @@ object Math3DUtil {
         val res = mutableListOf(originRel)
         val relativeDirection =
             RelativeLocation.of(Vec3d(direction.x, direction.y, direction.z).normalize().multiply(step))
+        var next = originRel
         for (i in 2..count) {
-            val next = originRel + relativeDirection
+            val pos = next + relativeDirection
+            next = pos.clone()
             res.add(next)
         }
         return res

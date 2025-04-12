@@ -14,5 +14,7 @@ interface Controlable<T> {
     fun teleportTo(pos: Vec3d)
     fun teleportTo(x: Double, y: Double, z: Double)
 
+    fun remove()
+
     fun getControlObject(): T
 }

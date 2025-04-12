@@ -14,6 +14,11 @@ object CooItems {
         TestParticleItem(Item.Settings())
     )
 
+    val testBarrierItem = register(
+        "test_barrier_item",
+        TestBarrierItem()
+    )
+
     fun register(id: String, item: Item): Item {
         val res = Registry.register(
             Registries.ITEM, Identifier.of(CooParticleAPI.MOD_ID, id), item
@@ -22,7 +27,7 @@ object CooItems {
         return res
     }
 
-    fun reg(){
+    fun reg() {
         CooParticleAPI.logger.info("注册物品成功")
     }
 

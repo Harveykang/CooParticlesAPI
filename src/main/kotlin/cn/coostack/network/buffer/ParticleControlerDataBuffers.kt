@@ -24,6 +24,8 @@ object ParticleControlerDataBuffers {
     fun vec3d(value: Vec3d): Vec3dControlerBuffer = Vec3dControlerBuffer().apply { loadedValue = (value) }
     fun uuid(value: UUID): UUIDControlerBuffer = UUIDControlerBuffer().apply { loadedValue = (value) }
 
+    fun empty(): EmptyControlerBuffer = EmptyControlerBuffer()
+
     fun withType(value: Any, clazz: Class<ParticleControlerDataBuffer<*>>): ParticleControlerDataBuffer<*> {
         val bufferCodec = clazz.getConstructor(value::class.java).newInstance(value)
         return bufferCodec

@@ -1,8 +1,11 @@
-package cn.coostack.network.particle
+package cn.coostack.test.particle.server
 
 import cn.coostack.network.buffer.ParticleControlerDataBuffer
 import cn.coostack.network.buffer.ParticleControlerDataBuffers
-import cn.coostack.particles.control.group.impl.TestGroupClient
+import cn.coostack.network.particle.ServerParticleGroup
+import cn.coostack.network.particle.ServerParticleGroupManager
+import cn.coostack.particles.control.group.ControlableParticleGroup
+import cn.coostack.test.particle.client.ScaleCircleGroupClient
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import java.util.*
@@ -37,7 +40,6 @@ class ScaleCircleGroupServer(private val bindPlayerUUID: UUID, visibleRange: Dou
         }
         val group = TestParticleGroup(bindPlayerUUID)
         ServerParticleGroupManager.addParticleGroup(
-            TestGroupClient::class.java,
             group,
             bindPlayer.eyePos,
             world as ServerWorld
@@ -51,6 +53,10 @@ class ScaleCircleGroupServer(private val bindPlayerUUID: UUID, visibleRange: Dou
             "tick" to ParticleControlerDataBuffers.int(tick),
             "max_tick" to ParticleControlerDataBuffers.int(maxTick)
         )
+    }
+
+    override fun getClientType(): Class<out ControlableParticleGroup> {
+        return ScaleCircleGroupClient::class.java
     }
 
 }

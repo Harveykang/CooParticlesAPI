@@ -16,6 +16,7 @@ class ItemModelProvider(output: FabricDataOutput?) : FabricModelProvider(output)
     override fun generateItemModels(gen: ItemModelGenerator) {
         gen.apply {
             register(CooItems.testParticle, Models.GENERATED)
+            register(CooItems.testBarrierItem, Models.HANDHELD)
         }
     }
 }

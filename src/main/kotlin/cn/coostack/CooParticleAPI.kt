@@ -1,5 +1,6 @@
 package cn.coostack
 
+import cn.coostack.barriers.BarrierManager
 import cn.coostack.config.APIConfig
 import cn.coostack.config.APIConfigManager
 import cn.coostack.items.CooItems
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory
 object CooParticleAPI : ModInitializer {
     val logger = LoggerFactory.getLogger("CooParticleAPI")!!
 
-    const val MOD_ID = "cooparticleapi"
+    const val MOD_ID = "cooparticlesapi"
 
 
     lateinit var server: MinecraftServer
@@ -57,6 +58,7 @@ object CooParticleAPI : ModInitializer {
         APIConfigManager.loadConfig()
         ServerTickEvents.START_SERVER_TICK.register { _ ->
             ServerParticleGroupManager.upgrade()
+            BarrierManager.doTick()
         }
         ServerLifecycleEvents.SERVER_STARTED.register { server ->
             this.server = server

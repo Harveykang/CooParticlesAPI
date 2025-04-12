@@ -27,6 +27,17 @@ data class RelativeLocation(var x: Double, var y: Double, var z: Double) {
             return Vec3d(relativeLocation.x, relativeLocation.y, relativeLocation.z)
         }
 
+        @JvmStatic
+        fun yAxis(): RelativeLocation = RelativeLocation(0.0, 1.0, 0.0)
+
+        @JvmStatic
+        fun xAxis(): RelativeLocation = RelativeLocation(1.0, 0.0, 0.0)
+
+        @JvmStatic
+        fun zAxis(): RelativeLocation = RelativeLocation(0.0, 0.0, 1.0)
+
+        @JvmStatic
+        fun zero(): RelativeLocation = RelativeLocation(0.0, 0.0, 0.0)
     }
 
     constructor() : this(0.0, 0.0, 0.0)
@@ -69,6 +80,7 @@ data class RelativeLocation(var x: Double, var y: Double, var z: Double) {
         z += other.z
         return this
     }
+
     fun remove(other: RelativeLocation): RelativeLocation {
         x -= other.x
         y -= other.y

@@ -7,12 +7,15 @@ import kotlin.collections.HashMap
 object ClientParticleGroupManager {
     private val visibleControls = ConcurrentHashMap<UUID, ControlableParticleGroup>()
 
-    private val registerBuilders = HashMap<Class<out ControlableParticleGroup>, ControlableParticleGroupProvider>()
+    private val registerBuilders =
+        HashMap<Class<out ControlableParticleGroup>, ControlableParticleGroupProvider>()
 
-    fun register(type: Class<out ControlableParticleGroup>, provider: ControlableParticleGroupProvider) {
+    fun register(
+        type: Class<out ControlableParticleGroup>,
+        provider: ControlableParticleGroupProvider
+    ) {
         registerBuilders[type] = provider
     }
-
 
     fun getBuilder(type: Class<out ControlableParticleGroup>): ControlableParticleGroupProvider? {
         return registerBuilders[type]

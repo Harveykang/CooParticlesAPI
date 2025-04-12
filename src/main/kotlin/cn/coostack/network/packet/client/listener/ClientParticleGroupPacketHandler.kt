@@ -84,9 +84,8 @@ object ClientParticleGroupPacketHandler : ClientPlayNetworking.PlayPayloadHandle
             }.invoke(targetGroup)
         }
 
-        ClientParticleGroupManager.getBuilder(targetGroup::class.java)?.changeGroup(
-            targetGroup, args
-        )
+        val builder = ClientParticleGroupManager.getBuilder(targetGroup::class.java) ?: return
+        builder.changeGroup(targetGroup, args)
     }
 
     private fun handleRemove(groupUUID: UUID) {
