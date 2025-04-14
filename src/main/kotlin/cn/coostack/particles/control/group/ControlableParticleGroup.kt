@@ -237,7 +237,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         val effect: (UUID) -> ParticleDisplayer,
         val invoker: ControlableParticle.() -> Unit
     ) {
-        var controlerAction: (ParticleControler) -> Unit = {}
+        internal var controlerAction: (ParticleControler) -> Unit = {}
         fun withControler(controler: (ParticleControler) -> Unit): ParticleRelativeData {
             controlerAction = controler
             return this

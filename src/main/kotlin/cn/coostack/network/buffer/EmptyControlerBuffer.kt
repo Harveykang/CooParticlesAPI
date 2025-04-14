@@ -9,7 +9,7 @@ class EmptyControlerBuffer() : ParticleControlerDataBuffer<Unit> {
 
 
     override fun encode(): ByteArray {
-        return encode()
+        return byteArrayOf()
     }
 
     override fun decode(buf: ByteArray) {

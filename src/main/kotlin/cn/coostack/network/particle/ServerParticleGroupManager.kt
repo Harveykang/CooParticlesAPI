@@ -7,6 +7,7 @@ import cn.coostack.network.packet.PacketParticleGroupS2C.PacketArgsType
 import cn.coostack.particles.control.ControlType
 import cn.coostack.particles.control.group.ControlableParticleGroup
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.particle.ParticleEffect
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d

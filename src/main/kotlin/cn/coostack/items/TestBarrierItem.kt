@@ -28,14 +28,15 @@ class TestBarrierItem : Item(Settings().maxCount(1)) {
         }
         val barrier = SwordBarrier(
             user.eyePos, world as ServerWorld,
-            box, BarrierSwordGroupServer(search, filter,user.rotationVector),
+            box, BarrierSwordGroupServer(search, filter, user.rotationVector),
             BarrierOption().apply {
-                acrossBlock = true
                 maxLivingTick = 150
                 enableSpeed = true
                 speed = 1.5
             }, filter, search
-        )
+        ).apply {
+            shooter = user
+        }
         barrier.direction = user.rotationVector
         BarrierManager.spawn(barrier)
         return res

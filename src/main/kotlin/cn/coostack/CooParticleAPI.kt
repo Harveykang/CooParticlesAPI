@@ -6,6 +6,7 @@ import cn.coostack.config.APIConfigManager
 import cn.coostack.items.CooItems
 import cn.coostack.items.group.CooItemGroup
 import cn.coostack.network.packet.PacketParticleGroupS2C
+import cn.coostack.network.packet.PacketParticleS2C
 import cn.coostack.network.particle.ServerParticleGroup
 import cn.coostack.network.particle.ServerParticleGroupManager
 import cn.coostack.particles.ControlableParticle
@@ -64,5 +65,6 @@ object CooParticleAPI : ModInitializer {
             this.server = server
         }
         PacketParticleGroupS2C.init()
+        PacketParticleS2C.init()
     }
 }

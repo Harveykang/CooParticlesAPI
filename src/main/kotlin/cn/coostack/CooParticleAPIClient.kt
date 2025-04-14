@@ -1,7 +1,9 @@
 package cn.coostack
 
 import cn.coostack.network.packet.PacketParticleGroupS2C
+import cn.coostack.network.packet.PacketParticleS2C
 import cn.coostack.network.packet.client.listener.ClientParticleGroupPacketHandler
+import cn.coostack.network.packet.client.listener.ClientParticlePacketHandler
 import cn.coostack.particles.ModParticles
 import cn.coostack.particles.control.group.ClientParticleGroupManager
 import cn.coostack.particles.impl.TestEndRodParticle
@@ -43,6 +45,7 @@ object CooParticleAPIClient : ClientModInitializer {
 
     private fun particleGroupPacketListener() {
         ClientPlayNetworking.registerGlobalReceiver(PacketParticleGroupS2C.payloadID, ClientParticleGroupPacketHandler)
+        ClientPlayNetworking.registerGlobalReceiver(PacketParticleS2C.payloadID, ClientParticlePacketHandler)
     }
 
 
