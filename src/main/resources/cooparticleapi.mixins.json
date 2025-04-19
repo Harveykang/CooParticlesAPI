@@ -1,13 +1,13 @@
 {
-	"required": true,
-	"package": "cn.coostack.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"client": [
-		"ParticleManagerMixin"
-	]
+  "required": true,
+  "package": "cn.coostack.cooparticlesapi.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "ParticleManagerMixin"
+  ]
 }
