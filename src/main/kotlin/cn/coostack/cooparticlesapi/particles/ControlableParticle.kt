@@ -213,6 +213,10 @@ abstract class ControlableParticle(
      * @see ParticleControler.addPreTickAction
      */
     final override fun tick() {
+        if (age > maxAge) {
+            age = maxAge
+        }
+
         if (minecraftTick) {
             super.tick()
         }

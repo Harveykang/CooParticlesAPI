@@ -30,7 +30,6 @@ class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUI
                 )
             }
         }
-
         @JvmStatic
         val packetCode: PacketCodec<RegistryByteBuf, TestEndRodEffect> = PacketCodec.of(
             { effect, buf ->
@@ -39,7 +38,6 @@ class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUI
                 TestEndRodEffect(it.readUuid())
             }
         )
-
     }
 
     override fun getType(): ParticleType<*> {

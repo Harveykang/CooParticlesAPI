@@ -33,12 +33,12 @@ class BarrierSwordGroupClient(uuid: UUID, var targetEntityID: Int?) : Controlabl
 
     }
 
-    var hilt = 4
+    var hilt = 2
     var swordBody = 6
     var swordHeadLen = 3
     var bodySize = 1.0
     var tail = 4
-    var step = 0.5
+    var step = 0.25
 
     init {
         axis = RelativeLocation.zAxis()
@@ -66,8 +66,10 @@ class BarrierSwordGroupClient(uuid: UUID, var targetEntityID: Int?) : Controlabl
      */
     private fun genSword(): List<RelativeLocation> {
         val res = mutableListOf<RelativeLocation>()
-        for (i in -hilt..hilt) {
-            res.add(RelativeLocation(i * step, 0.0, 0.0))
+        var c = -hilt + 0.0
+        while (c < hilt) {
+            res.add(RelativeLocation(c, 0.0, 0.0))
+            c += step
         }
 
         for (i in 1..swordBody) {
@@ -90,10 +92,9 @@ class BarrierSwordGroupClient(uuid: UUID, var targetEntityID: Int?) : Controlabl
             )
         }
 
-        val highest = RelativeLocation(0.0, 0.0, step * swordBody + swordHeadLen * step)
+        val highest = RelativeLocation(0.0, 0.0, step * (swordBody + swordHeadLen))
         val l = RelativeLocation(-bodySize * step, 0.0, step * swordBody)
         val r = RelativeLocation(+bodySize * step, 0.0, step * swordBody)
-
         res.addAll(
             Math3DUtil.getLineLocations(
                 highest.toVector(), l.toVector(), swordBody
@@ -119,4 +120,5 @@ class BarrierSwordGroupClient(uuid: UUID, var targetEntityID: Int?) : Controlabl
             }
         }
     }
+
 }

@@ -46,18 +46,17 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
                     }
                 }
             }
-            res[withData] = it.multiply(1.0 / anMaxTick)
+            res[withData] = it
         }
         return res
     }
 
 
+    override fun beforeDisplay(locations: Map<ParticleRelativeData, RelativeLocation>) {
+        scale = 1.0 / anMaxTick
+    }
+
     override fun onGroupDisplay() {
-        // 保存最初始的长度
-        // 用于做稳定的长度添加
-        val firstClone = particlesLocations.map {
-            it.key to it.value.length()
-        }.toMap()
         addPreTickAction {
             val player = world!!.getPlayerByUuid(bindPlayer) ?: return@addPreTickAction
             // 同步位置
@@ -65,11 +64,7 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
             // 在变大的过程中也能旋转
             rotateParticlesAsAxis(Math.toRadians(10.0))
             if (tick++ >= maxTick - anMaxTick) {
-                particlesLocations.forEach {
-                    val cloneLength = firstClone[it.key]!!
-                    // 确保添加的方向和长度正确
-                    it.value.remove(it.value.normalize().multiply(cloneLength))
-                }
+                scale(scale - 1.0 / anMaxTick)
                 return@addPreTickAction
             }
             // 旋转时间设定
@@ -77,11 +72,7 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
                 anTick = anMaxTick
                 return@addPreTickAction
             }
-            particlesLocations.forEach {
-                val cloneLength = firstClone[it.key]!!
-                // 确保添加的方向和长度正确
-                it.value.add(it.value.normalize().multiply(cloneLength))
-            }
+            scale(scale + 1.0 / anMaxTick)
         }
     }
 }

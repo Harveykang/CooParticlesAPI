@@ -81,7 +81,10 @@ abstract class AbstractBarrage(
         }
     }
 
-    private fun hit(result: BarrageHitResult) {
+    /**
+     * 判定barrage已经攻击到实体或者触发方块/液体时执行
+     */
+    fun hit(result: BarrageHitResult) {
         onHit(result)
         if (options.acrossable) {
             if (options.maxAcrossCount == -1) return

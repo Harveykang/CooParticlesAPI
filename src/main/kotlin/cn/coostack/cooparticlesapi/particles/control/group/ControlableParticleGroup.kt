@@ -1,5 +1,6 @@
 package cn.coostack.cooparticlesapi.particles.control.group
 
+import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.particles.Controlable
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
@@ -33,21 +34,32 @@ import kotlin.collections.iterator
  */
 @Environment(EnvType.CLIENT)
 abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<ControlableParticleGroup> {
+    // 实际存在于客户端的粒子
     protected val particles = ConcurrentHashMap<UUID, Controlable<*>>()
+
+    // 实际显示的粒子相对位置关系
     protected val particlesLocations = ConcurrentHashMap<Controlable<*>, RelativeLocation>()
+
+    protected val particlesDefaultScaleLengths = ConcurrentHashMap<UUID, Double>()
+
+    // 每个tick执行的调用队列
     private val invokeQueue = mutableListOf<(ControlableParticleGroup) -> Unit>()
 
     var tick = 0
     var maxTick = 120
 
     /**
-     * 是否会因为tick >= maxTick而禁止
+     * 是否会因为tick >= maxTick而清除
      */
     var withTickDeath = false
     var valid = true
     var canceled = false
     var origin: Vec3d = Vec3d.ZERO
     var world: ClientWorld? = null
+    var scale = 1.0
+        protected set
+
+    // 粒子的轴, 旋转会按照此轴旋转
     var axis = RelativeLocation(0.0, 1.0, 0.0)
     var displayed = false
 
@@ -60,6 +72,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
 
     /**
      * 每次客户端更新可见时都会执行一次这个方法
+     *
      */
     abstract fun onGroupDisplay()
 
@@ -78,15 +91,10 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
 
     fun clearParticles() {
         particles.onEach {
-            val controlObject = it.value.getControlObject()
-            if (controlObject is ControlableParticle) {
-                controlObject.markDead()
-            } else {
-                controlObject as ControlableParticleGroup
-                controlObject.clearParticles()
-            }
+            it.value.remove()
         }.clear()
         particlesLocations.clear()
+        particlesDefaultScaleLengths.clear()
         valid = false
     }
 
@@ -143,6 +151,17 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     }
 
 
+    fun scale(new: Double) {
+        if (new < 0.0) {
+            CooParticleAPI.logger.error("scale can not be less than zero")
+            return
+        }
+        scale = new
+        if (displayed) {
+            toggleScaleDisplayed()
+        }
+    }
+
     override fun rotateParticlesToPoint(to: RelativeLocation) {
         if (!displayed) {
             return
@@ -150,7 +169,6 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         Math3DUtil.rotatePointsToPoint(
             particlesLocations.values.toList(), to, axis
         )
-
         // 把粒子丢到对应的位置
         particlesLocations.forEach { (t, u) ->
             t.teleportTo(u.x + origin.x, u.y + origin.y, u.z + origin.z)
@@ -224,11 +242,24 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         return this
     }
 
+    protected fun toggleScaleDisplayed() {
+        if (scale == 1.0) {
+            return
+        }
+        particlesLocations.forEach {
+            val uuid = it.key.controlUUID()
+            val len = particlesDefaultScaleLengths[uuid]!!
+            val value = it.value
+            value.multiply(len * scale / value.length())
+        }
+    }
+
     private fun displayParticles(pos: Vec3d, world: ClientWorld) {
         val locations = loadParticleLocations()
         beforeDisplay(locations)
+        toggleScale(locations)
         for ((v, rl) in locations) {
-            val uuid = UUID.randomUUID()
+            val uuid = v.uuid
             val particleDisplayer = v.effect(uuid)
             if (particleDisplayer is ParticleDisplayer.SingleParticleDisplayer) {
                 val controler = ControlParticleManager.createControl(uuid)
@@ -244,14 +275,39 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         }
     }
 
+    private fun toggleScale(locations: Map<ParticleRelativeData, RelativeLocation>) {
+        if (particlesDefaultScaleLengths.isEmpty()) {
+            locations.forEach {
+                val uuid = it.key.uuid
+                particlesDefaultScaleLengths[uuid] = it.value.length()
+            }
+        }
+        if (scale == 1.0) {
+            return
+        }
+
+        locations.forEach {
+            val uuid = it.key.uuid
+            val len = particlesDefaultScaleLengths[uuid]!!
+            val value = it.value
+            value.multiply(len * scale / value.length())
+        }
+    }
+
+
     class ParticleRelativeData(
         val effect: (UUID) -> ParticleDisplayer,
         val invoker: ControlableParticle.() -> Unit
     ) {
+        internal val uuid = UUID.randomUUID()
         internal var controlerAction: (ParticleControler) -> Unit = {}
         fun withControler(controler: (ParticleControler) -> Unit): ParticleRelativeData {
             controlerAction = controler
             return this
         }
+    }
+
+    override fun controlUUID(): UUID {
+        return uuid
     }
 }

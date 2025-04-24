@@ -22,6 +22,7 @@ import java.util.UUID
  *          3. currentTick: Int
  *          4. maxTick: Int
  *          5. ByteBuf 用于ControlableParticleGroup 构建的输入参数(不包括自身的UUID)
+ *          6. scale 缩放大小
  *      3. CHANGE args输入支持
  *          1. pos: Vec3d
  *          2. rotateTo: Vec3d
@@ -30,13 +31,14 @@ import java.util.UUID
  *          5. currentTick: Int
  *          6. maxTick: Int
  *          7. invoke: 无参方法名
+ *          8. scale 缩放大小
  */
 class PacketParticleGroupS2C(
     val uuid: UUID,
     val type: ControlType,
     val args: Map<String, ParticleControlerDataBuffer<*>>
 ) : CustomPayload {
-    enum class PacketArgsType(val toArgsName: String) {
+    enum class PacketArgsType(val ofArgs: String) {
         POS("pos"),
         CURRENT_TICK("current_tick"),
         MAX_TICK("max_tick"),
@@ -44,6 +46,7 @@ class PacketParticleGroupS2C(
         ROTATE_AXIS("rotate_axis"),
         INVOKE("invoke"),
         AXIS("axis"),
+        SCALE("scale"),
         GROUP_TYPE("groupType");
 
         companion object {

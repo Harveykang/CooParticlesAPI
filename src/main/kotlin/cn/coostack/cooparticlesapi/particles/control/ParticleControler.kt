@@ -67,6 +67,10 @@ class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticl
         }
     }
 
+    override fun controlUUID(): UUID {
+        return uuid
+    }
+
     override fun rotateParticlesToPoint(to: RelativeLocation) {
     }
 

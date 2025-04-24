@@ -12,6 +12,7 @@ import cn.coostack.cooparticlesapi.particles.ControlableParticle
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroupProvider
+import cn.coostack.cooparticlesapi.scheduler.CooScheduler
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
@@ -21,11 +22,11 @@ import org.slf4j.LoggerFactory
 
 object CooParticleAPI : ModInitializer {
     val logger = LoggerFactory.getLogger("CooParticleAPI")!!
-
     const val MOD_ID = "cooparticlesapi"
-
-
     lateinit var server: MinecraftServer
+
+    @JvmField
+    val scheduler = CooScheduler()
 
     /**
      * API创建粒子组合使用流程
@@ -59,6 +60,7 @@ object CooParticleAPI : ModInitializer {
         ServerTickEvents.START_SERVER_TICK.register { _ ->
             ServerParticleGroupManager.upgrade()
             BarrageManager.doTick()
+            scheduler.doTick()
         }
         ServerLifecycleEvents.SERVER_STARTED.register { server ->
             this.server = server

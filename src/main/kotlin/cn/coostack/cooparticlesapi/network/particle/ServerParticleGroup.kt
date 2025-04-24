@@ -1,5 +1,6 @@
 package cn.coostack.cooparticlesapi.network.particle
 
+import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffer
 import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffers
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
@@ -39,6 +40,7 @@ abstract class ServerParticleGroup(
         internal set
     var clientMaxTick = 120
         internal set
+    var scale = 1.0
 
     /**
      * 服务器内的生命周期
@@ -46,6 +48,7 @@ abstract class ServerParticleGroup(
      */
     var tick = 0
     var maxTick = 120
+
 
     var axis: RelativeLocation = RelativeLocation(0.0, 1.0, 0.0)
         internal set
@@ -106,6 +109,40 @@ abstract class ServerParticleGroup(
     }
 
     /**
+     * 不立刻同步给客户端
+     * 只修改参数
+     * 但是在新加入可视的玩家会应用此scale
+     * 如果想要在客户端不应用服务器的scale
+     * 则需要在provider的create方法中重新修改scale值
+     */
+    fun scaleOnServer(new: Double) {
+        if (new < 0.0) {
+            CooParticleAPI.logger.error("scale must be greater than zero.")
+            return
+        }
+        this.scale = new
+    }
+
+    /**
+     * 服务器修改客户端缩放大小
+     * 并且立刻同步到客户端
+     */
+    fun scale(new: Double) {
+        if (new < 0.0) {
+            CooParticleAPI.logger.error("scale must be greater than zero.")
+            return
+        }
+        change(
+            {
+                this.scale = new
+            },
+            mapOf(
+                PacketParticleGroupS2C.PacketArgsType.SCALE.ofArgs to ParticleControlerDataBuffers.double(new)
+            )
+        )
+    }
+
+    /**
      * 销毁包 (在update时会删除所有的可见)
      */
     fun kill() {
@@ -147,7 +184,7 @@ abstract class ServerParticleGroup(
     fun setAxis(axis: Vec3d) {
         change(
             { this.axis = RelativeLocation.of(axis) }, mapOf(
-                PacketParticleGroupS2C.PacketArgsType.AXIS.toArgsName to ParticleControlerDataBuffers.vec3d(axis)
+                PacketParticleGroupS2C.PacketArgsType.AXIS.ofArgs to ParticleControlerDataBuffers.vec3d(axis)
             )
         )
     }
@@ -174,7 +211,7 @@ abstract class ServerParticleGroup(
         // 发包告知 所有可见客户端
         change(
             { this.pos = pos }, mapOf(
-                PacketParticleGroupS2C.PacketArgsType.POS.toArgsName to ParticleControlerDataBuffers.vec3d(pos)
+                PacketParticleGroupS2C.PacketArgsType.POS.ofArgs to ParticleControlerDataBuffers.vec3d(pos)
             )
         )
     }
@@ -185,7 +222,7 @@ abstract class ServerParticleGroup(
     fun rotateParticlesAsAxis(angle: Double) {
         change(
             {}, mapOf(
-                PacketParticleGroupS2C.PacketArgsType.ROTATE_AXIS.toArgsName to ParticleControlerDataBuffers.double(
+                PacketParticleGroupS2C.PacketArgsType.ROTATE_AXIS.ofArgs to ParticleControlerDataBuffers.double(
                     angle
                 )
             )
@@ -198,7 +235,7 @@ abstract class ServerParticleGroup(
     fun rotateParticlesToPoint(to: Vec3d) {
         change(
             {}, mapOf(
-                PacketParticleGroupS2C.PacketArgsType.ROTATE_TO.toArgsName to ParticleControlerDataBuffers.vec3d(to)
+                PacketParticleGroupS2C.PacketArgsType.ROTATE_TO.ofArgs to ParticleControlerDataBuffers.vec3d(to)
             )
         )
     }
@@ -206,7 +243,7 @@ abstract class ServerParticleGroup(
     fun changeTick(tick: Int) {
         change(
             { clientTick = tick }, mapOf(
-                PacketParticleGroupS2C.PacketArgsType.CURRENT_TICK.toArgsName to ParticleControlerDataBuffers.int(
+                PacketParticleGroupS2C.PacketArgsType.CURRENT_TICK.ofArgs to ParticleControlerDataBuffers.int(
                     tick
                 )
             )
@@ -216,7 +253,7 @@ abstract class ServerParticleGroup(
     fun changeMaxTick(tick: Int) {
         change(
             { this.maxTick = tick }, mapOf(
-                PacketParticleGroupS2C.PacketArgsType.MAX_TICK.toArgsName to ParticleControlerDataBuffers.int(tick)
+                PacketParticleGroupS2C.PacketArgsType.MAX_TICK.ofArgs to ParticleControlerDataBuffers.int(tick)
             )
         )
     }

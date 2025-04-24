@@ -129,10 +129,10 @@ object ServerParticleGroupManager {
         val packet = PacketParticleGroupS2C(
             group.uuid, ControlType.CHANGE,
             mutableMapOf(
-                PacketArgsType.POS.toArgsName to ParticleControlerDataBuffers.vec3d(group.pos),
-                PacketArgsType.AXIS.toArgsName to ParticleControlerDataBuffers.vec3d(group.axis.toVector()),
-                PacketArgsType.CURRENT_TICK.toArgsName to ParticleControlerDataBuffers.int(group.clientTick),
-                PacketArgsType.MAX_TICK.toArgsName to ParticleControlerDataBuffers.int(group.clientMaxTick),
+                PacketArgsType.POS.ofArgs to ParticleControlerDataBuffers.vec3d(group.pos),
+                PacketArgsType.AXIS.ofArgs to ParticleControlerDataBuffers.vec3d(group.axis.toVector()),
+                PacketArgsType.CURRENT_TICK.ofArgs to ParticleControlerDataBuffers.int(group.clientTick),
+                PacketArgsType.MAX_TICK.ofArgs to ParticleControlerDataBuffers.int(group.clientMaxTick),
             )
         )
 
@@ -169,10 +169,11 @@ object ServerParticleGroupManager {
             targetGroup.uuid,
             ControlType.CREATE,
             mutableMapOf(
-                PacketArgsType.POS.toArgsName to ParticleControlerDataBuffers.vec3d(targetGroup.pos),
-                PacketArgsType.GROUP_TYPE.toArgsName to ParticleControlerDataBuffers.string(targetGroup.getClientType()!!.name),
-                PacketArgsType.CURRENT_TICK.toArgsName to ParticleControlerDataBuffers.int(targetGroup.clientTick),
-                PacketArgsType.MAX_TICK.toArgsName to ParticleControlerDataBuffers.int(targetGroup.clientMaxTick),
+                PacketArgsType.POS.ofArgs to ParticleControlerDataBuffers.vec3d(targetGroup.pos),
+                PacketArgsType.GROUP_TYPE.ofArgs to ParticleControlerDataBuffers.string(targetGroup.getClientType()!!.name),
+                PacketArgsType.CURRENT_TICK.ofArgs to ParticleControlerDataBuffers.int(targetGroup.clientTick),
+                PacketArgsType.MAX_TICK.ofArgs to ParticleControlerDataBuffers.int(targetGroup.clientMaxTick),
+                PacketArgsType.SCALE.ofArgs to ParticleControlerDataBuffers.double(targetGroup.scale)
             ).apply {
                 putAll(targetGroup.otherPacketArgs())
             }

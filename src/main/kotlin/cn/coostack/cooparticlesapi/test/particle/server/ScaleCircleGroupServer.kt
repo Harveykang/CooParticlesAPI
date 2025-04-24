@@ -34,16 +34,6 @@ class ScaleCircleGroupServer(private val bindPlayerUUID: UUID, visibleRange: Dou
     }
 
     override fun onTickAliveDeath() {
-        val bindPlayer = world!!.getPlayerByUuid(bindPlayerUUID) ?: let {
-            kill()
-            return
-        }
-        val group = TestParticleGroup(bindPlayerUUID)
-        ServerParticleGroupManager.addParticleGroup(
-            group,
-            bindPlayer.eyePos,
-            world as ServerWorld
-        )
     }
 
     override fun otherPacketArgs(): Map<String, ParticleControlerDataBuffer<out Any>> {
