@@ -5,6 +5,7 @@ import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
 import cn.coostack.cooparticlesapi.particles.control.ControlType
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
+import cn.coostack.cooparticlesapi.particles.control.group.SequencedParticleGroup
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -41,6 +42,9 @@ object ClientParticleGroupPacketHandler : ClientPlayNetworking.PlayPayloadHandle
         val groupClass = Class.forName(type)
         val builder = ClientParticleGroupManager.getBuilder(groupClass as Class<out ControlableParticleGroup>)!!
         val group = builder.createGroup(groupUUID, args)
+        if (group is SequencedParticleGroup) {
+            handleSequencedGroupArgs(group, args)
+        }
         group.tick = currentTick
         group.maxTick = maxTick
         group.scale(scale)
@@ -91,6 +95,9 @@ object ClientParticleGroupPacketHandler : ClientPlayNetworking.PlayPayloadHandle
                 args[PacketParticleGroupS2C.PacketArgsType.SCALE.ofArgs]!!.loadedValue!! as Double
             )
         }
+        if (targetGroup is SequencedParticleGroup) {
+            handleSequencedGroupArgs(targetGroup, args)
+        }
 
         val builder = ClientParticleGroupManager.getBuilder(targetGroup::class.java) ?: return
         builder.changeGroup(targetGroup, args)
@@ -100,4 +107,22 @@ object ClientParticleGroupPacketHandler : ClientPlayNetworking.PlayPayloadHandle
         ClientParticleGroupManager.removeVisible(groupUUID)
     }
 
+    private fun handleSequencedGroupArgs(
+        group: SequencedParticleGroup,
+        args: Map<String, ParticleControlerDataBuffer<*>>
+    ) {
+        if (args.containsKey("toggle")) {
+            group.toggle(args["toggle"]!!.loadedValue as Int)
+        }
+        if (args.containsKey("addCount")) {
+            group.addMultiple(args["addCount"]!!.loadedValue as Int)
+        }
+        if (args.containsKey("removeCount")) {
+            group.removeMultiple(args["removeCount"]!!.loadedValue as Int)
+        }
+
+        if (args.containsKey("toggle_status")) {
+            group.toggleStatus(args["toggle_status"]!!.loadedValue as LongArray)
+        }
+    }
 }

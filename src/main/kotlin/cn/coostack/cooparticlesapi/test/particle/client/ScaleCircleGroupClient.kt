@@ -35,7 +35,7 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
         val res = mutableMapOf<ParticleRelativeData, RelativeLocation>()
         val points = Math3DUtil.getCycloidGraphic(3.0, 5.0, -2, 3, 720, .5)
         points.forEach {
-            val withData = withEffect({ ParticleDisplayer.Companion.withSingle(TestEndRodEffect(it)) }) {
+            val withData = withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
                 color = Vector3f(100 / 255f, 100 / 255f, 255 / 255f)
                 maxAge = 120
             }.withControler { c ->

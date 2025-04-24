@@ -19,6 +19,10 @@ object CooItems {
         TestBarrierItem()
     )
 
+    val testSequencedParticle = register(
+        "sequenced_test_item", TestSequencedItem()
+    )
+
     fun register(id: String, item: Item): Item {
         val res = Registry.register(
             Registries.ITEM, Identifier.of(CooParticleAPI.MOD_ID, id), item

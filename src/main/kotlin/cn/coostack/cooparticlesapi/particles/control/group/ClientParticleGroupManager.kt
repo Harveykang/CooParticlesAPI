@@ -30,7 +30,7 @@ object ClientParticleGroupManager {
     }
 
     fun removeVisible(id: UUID) {
-        visibleControls[id]?.clearParticles()
+        visibleControls[id]?.remove()
         visibleControls.remove(id)
     }
 

@@ -43,7 +43,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     protected val particlesDefaultScaleLengths = ConcurrentHashMap<UUID, Double>()
 
     // 每个tick执行的调用队列
-    private val invokeQueue = mutableListOf<(ControlableParticleGroup) -> Unit>()
+    internal val invokeQueue = mutableListOf<(ControlableParticleGroup) -> Unit>()
 
     var tick = 0
     var maxTick = 120
@@ -98,31 +98,15 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         valid = false
     }
 
-    fun tick() {
-        if (!valid || canceled) {
-            clearParticles()
-            return
-        }
-        if (withTickDeath) {
-            if (tick++ >= maxTick) {
-                valid = false
-                return
-            }
-        }
-        invokeQueue.forEach { it(this) }
-        particles.asSequence().filter { it.value is ControlableParticleGroup }.forEach {
-            (it.value.getControlObject() as ControlableParticleGroup).tick()
-        }
-    }
 
     /**
      * 清除所有粒子并且重新按照相对位置渲染
      */
-    fun flush() {
+    open fun flush() {
         // 即使flush也不会被处理
         // 如果没有display则不会出现origin world数据 因此也就无法进行操作
         if (canceled || !valid || !displayed) return
-        clearParticles()
+        remove()
         valid = true
         axis = RelativeLocation(0.0, 1.0, 0.0)
         displayParticles(origin, world!!)
@@ -139,7 +123,24 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         }
     }
 
-    fun display(pos: Vec3d, world: ClientWorld) {
+    internal open fun tick() {
+        if (!valid || canceled) {
+            clearParticles()
+            return
+        }
+        if (withTickDeath) {
+            if (tick++ >= maxTick) {
+                valid = false
+                return
+            }
+        }
+        invokeQueue.forEach { it(this) }
+        particles.asSequence().filter { it.value is ControlableParticleGroup }.forEach {
+            (it.value.getControlObject() as ControlableParticleGroup).tick()
+        }
+    }
+
+    internal open fun display(pos: Vec3d, world: ClientWorld) {
         if (displayed) {
             return
         }
@@ -151,7 +152,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     }
 
 
-    fun scale(new: Double) {
+    open fun scale(new: Double) {
         if (new < 0.0) {
             CooParticleAPI.logger.error("scale can not be less than zero")
             return
@@ -242,7 +243,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
         return this
     }
 
-    protected fun toggleScaleDisplayed() {
+    open protected fun toggleScaleDisplayed() {
         if (scale == 1.0) {
             return
         }
@@ -295,7 +296,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     }
 
 
-    class ParticleRelativeData(
+    open class ParticleRelativeData(
         val effect: (UUID) -> ParticleDisplayer,
         val invoker: ControlableParticle.() -> Unit
     ) {

@@ -92,7 +92,7 @@ object Math3DUtil {
         val doubled = max(abs(w1), abs(w2))
         var current = 0
         // 修复当count过大时, 点计算错误
-        val precision = 360.0 * doubled / count
+        val precision = 2 * PI * doubled / count
         while (current < count) {
             radOrigin += w1 * precision
             radA += w2 * precision

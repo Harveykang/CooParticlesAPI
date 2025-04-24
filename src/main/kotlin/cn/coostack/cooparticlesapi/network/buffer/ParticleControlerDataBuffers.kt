@@ -12,12 +12,15 @@ object ParticleControlerDataBuffers {
     fun string(value: String): StringControlerBuffer = StringControlerBuffer().apply { loadedValue = (value) }
 
     fun int(value: Int): IntControlerBuffer = IntControlerBuffer().apply { loadedValue = (value) }
+    fun intArray(value: IntArray): IntArrayControlerBuffer = IntArrayControlerBuffer().apply { loadedValue = (value) }
 
     fun double(value: Double): DoubleControlerBuffer = DoubleControlerBuffer().apply { loadedValue = (value) }
 
     fun float(value: Float): FloatControlerBuffer = FloatControlerBuffer().apply { loadedValue = (value) }
 
     fun long(value: Long): LongControlerBuffer = LongControlerBuffer().apply { loadedValue = (value) }
+    fun longArray(value: LongArray): LongArrayControlerBuffer =
+        LongArrayControlerBuffer().apply { loadedValue = (value) }
 
     fun short(value: Short): ShortControlerBuffer = ShortControlerBuffer().apply { loadedValue = (value) }
 

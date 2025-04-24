@@ -15,6 +15,7 @@ class LanguageProvider(
             add("item.coo_group", "§b粒子测试分组")
             add(CooItems.testParticle, "测试粒子物品")
             add(CooItems.testBarrierItem, "弹幕测试法杖")
+            add(CooItems.testSequencedParticle, "§a顺序出现粒子组测试工具")
         }
     }
 }

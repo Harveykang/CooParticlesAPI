@@ -16,6 +16,7 @@ class ItemModelProvider(output: FabricDataOutput?) : FabricModelProvider(output)
         gen.apply {
             register(CooItems.testParticle, Models.GENERATED)
             register(CooItems.testBarrierItem, Models.HANDHELD)
+            register(CooItems.testSequencedParticle, Models.HANDHELD)
         }
     }
 }

@@ -58,6 +58,7 @@ class PacketParticleGroupS2C(
                     "rotate_to" -> return ROTATE_TO
                     "rotate_axis" -> return ROTATE_AXIS
                     "invoke" -> return INVOKE
+                    "scale" -> return SCALE
                     "groupType" -> return GROUP_TYPE
                     else -> INVOKE
                 }

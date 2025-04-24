@@ -205,11 +205,11 @@ class TestParticleGroup(private val bindPlayer: ServerPlayerEntity) :
             "bindUUID" to ParticleControlerDataBuffers.uuid(bindPlayer.uuid)
         )
     }
-    
-    override fun getClientType(): Class<out ControlableParticleGroup>{
+
+    override fun getClientType(): Class<out ControlableParticleGroup> {
         return TestGroupClient::class.java
     }
-    
+
 }
 ```
 
@@ -228,9 +228,10 @@ cn.coostack.particles.control.group.ControlableParticleGroup 与
 
 cn.coostack.network.particle.ServerParticleGroup
 
-
 #### ParticleGroup嵌套示例
+
 - 主ParticleGroup:
+
 ```kotlin
 class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGroup(uuid) {
 
@@ -293,7 +294,9 @@ class TestGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGro
     }
 } 
 ```
+
 子ParticleGroup实例
+
 ```kotlin
 class TestSubGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGroup(uuid) {
 
@@ -319,6 +322,164 @@ class TestSubGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlableParticle
                 Math.toRadians(-10.0)
             )
         }
+    }
+}
+```
+
+# 其他用法
+
+## SequencedParticleGroup 用法
+
+此类解决规定粒子生成的顺序和速度的需求
+此方法修改了ControlableParticleGroup的某些基本方法
+使用此类时 在服务器层使用 SequencedServerParticleGroup
+示例:
+
+```kotlin
+class SequencedMagicCircleClient(uuid: UUID, val bindPlayer: UUID) : SequencedParticleGroup(uuid) {
+    // 测试缩放
+    var maxScaleTick = 36
+    var current = 0
+
+    // provider和正常一样
+    class Provider : ControlableParticleGroupProvider {
+        override fun createGroup(
+            uuid: UUID,
+            args: Map<String, ParticleControlerDataBuffer<*>>
+        ): ControlableParticleGroup {
+            val bindUUID = args["bind_player"]!!.loadedValue as UUID
+            return SequencedMagicCircleClient(uuid, bindUUID)
+        }
+
+        override fun changeGroup(
+            group: ControlableParticleGroup,
+            args: Map<String, ParticleControlerDataBuffer<*>>
+        ) {
+        }
+    }
+
+    // 由于要记录粒子的顺序, 所以在这里使用顺序
+    override fun loadParticleLocationsWithIndex(): SortedMap<SequencedParticleRelativeData, RelativeLocation> {
+        val res = TreeMap<SequencedParticleRelativeData, RelativeLocation>()
+        val points = Math3DUtil.getCycloidGraphic(3.0, 5.0, -2, 3, 360, .5)
+//        val points = Math3DUtil.getCycloidGraphic(1.0,1.0,1,1,360,6.0)
+        points.forEachIndexed { index, it ->
+            res[withEffect(
+                { id -> ParticleDisplayer.withSingle(TestEndRodEffect(id)) }, {
+                    color = Vector3f(100 / 255f, 100 / 255f, 255 / 255f)
+                }, index // 粒子的顺序 升序
+            )] = it.also { it.y += 15.0 }
+        }
+        return res
+    }
+
+    override fun beforeDisplay(locations: SortedMap<SequencedParticleRelativeData, RelativeLocation>) {
+        super.beforeDisplay(locations)
+        // 设置缩放
+        scale = 1.0 / maxScaleTick
+    }
+
+    var toggle = false
+    override fun onGroupDisplay() {
+        addPreTickAction {
+            // 设置缩放 大小循环
+            if (current < maxScaleTick && !toggle) {
+                current++
+                scale(scale + 1.0 / maxScaleTick)
+            } else if (current < maxScaleTick) {
+                current++
+                scale(scale - 1.0 / maxScaleTick)
+            } else {
+                toggle = !toggle
+                current = 0
+            }
+            // 设置旋转
+            rotateParticlesAsAxis(Math.toRadians(10.0))
+            val player = world!!.getPlayerByUuid(bindPlayer) ?: return@addPreTickAction
+            val dir = player.rotationVector
+            rotateParticlesToPoint(RelativeLocation.of(dir))
+            teleportTo(player.eyePos)
+        }
+    }
+}
+```
+
+上述粒子和ControlableParticleGroup的区别如下
+
+1. 生成时默认粒子数量为0
+2. 使用addSingle addMultiple addAll removeSingle removeAll removeMultiple 控制粒子队列生成顺序
+3. 使用setSingleStatus 控制某个索引下的粒子的顺序
+4. 建议使用SequencedServerParticleGroup控制粒子生成顺序
+
+对应的 Server层
+
+```kotlin
+
+class SequencedMagicCircleServer(val bindPlayer: UUID) : SequencedServerParticleGroup(16.0) {
+    val maxCount = maxCount()
+
+    // 控制粒子逐个出现又消失
+    var add = false
+
+    // 控制单个粒子控制器
+    var st = 0
+    val maxSt = 72
+    var stToggle = false
+    override fun tick() {
+        val player = world!!.getPlayerByUuid(bindPlayer) ?: return
+        setPosOnServer(player.pos)
+        if (st++ > maxSt) {
+            if (!stToggle) {
+                stToggle = true
+                // 服务器上设置某个粒子的显示状态
+                for (i in 0 until maxCount()) {
+                    if (i <= 30) {
+                        setDisplayed(i, true)
+                    } else {
+                        setDisplayed(i, false)
+                    }
+                }
+                // 同步到客户端 粒子个数和粒子状态
+                toggleCurrentCount()
+            }
+            return
+        }
+        if (add && serverSequencedParticleCount >= maxCount) {
+            add = false
+            serverSequencedParticleCount = maxCount
+        } else if (!add && serverSequencedParticleCount <= 0) {
+            add = true
+            serverSequencedParticleCount = 0
+        }
+        // 服务器控制子粒子生成
+        if (add) {
+            addMultiple(10)
+        } else {
+            removeMultiple(10)
+        }
+    }
+
+    override fun otherPacketArgs(): Map<String, ParticleControlerDataBuffer<out Any>> {
+        return mapOf(
+            "bind_player" to ParticleControlerDataBuffers.uuid(bindPlayer),
+            toggleArgLeastIndex(),// 同步粒子数, 会生成 从第1个粒子生成到第serverSequencedParticleCount个粒子
+            toggleArgStatus() // 在生成serverSequencedParticleCount粒子后, 再对clientIndexStatus内存储的状态进行同步
+        )
+    }
+
+    override fun getClientType(): Class<out ControlableParticleGroup>? {
+        return SequencedMagicCircleClient::class.java
+    }
+
+    /**
+     * 切记一定要和 SequencedParticleGroup.loadParticleLocationsWithIndex().size 相同
+     * 如果你的group的粒子数量是可变的(使用了flush方法刷新了粒子样式 其中长度发生变化)
+     * 那么请在服务器层做好数据同步 ( size同步 )
+     * 如果此处的 maxCount > SequencedParticleGroup.loadParticleLocationsWithIndex().size 则会导致数组越界异常
+     * 如果此处的 maxCount < SequencedParticleGroup.loadParticleLocationsWithIndex().size 则会导致粒子控制不完全(部分粒子无法从服务器生成)
+     */
+    override fun maxCount(): Int {
+        return 360
     }
 }
 ```
