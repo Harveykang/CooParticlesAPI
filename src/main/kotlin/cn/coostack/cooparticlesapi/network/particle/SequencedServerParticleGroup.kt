@@ -30,8 +30,12 @@ abstract class SequencedServerParticleGroup(visibleRange: Double = 32.0) : Serve
     var serverSequencedParticleCount = 0
 
     /**
-     * 返回 Client的最大粒子数量
-     * 用于确定索引值
+     * 切记一定要和 SequencedParticleGroup.loadParticleLocationsWithIndex().size 相同
+     * 如果你的group的粒子数量是可变的(使用了flush方法刷新了粒子样式 其中长度发生变化)
+     * 那么请在服务器层做好数据同步 ( size同步 )
+     * 如果此处的 maxCount > SequencedParticleGroup.loadParticleLocationsWithIndex().size 则会导致数组越界异常
+     * 如果此处的 maxCount < SequencedParticleGroup.loadParticleLocationsWithIndex().size 则会导致粒子控制不完全(部分粒子无法从服务器生成)
+     * @return 应当返回 SequencedParticleGroup.loadParticleLocationsWithIndex().size
      */
     abstract fun maxCount(): Int
 

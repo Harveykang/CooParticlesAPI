@@ -184,6 +184,9 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
     }
 
     fun toggleStatus(statusArray: LongArray) {
+        if (statusArray.isEmpty()) return
+        if (displayedStatus.isEmpty()) return
+        if (!displayed) return
         statusArray.forEachIndexed { page, container ->
             displayedStatus[page] = container
             for (bit in 1..64) {

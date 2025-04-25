@@ -4,8 +4,12 @@ import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleS2C
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticleGroupPacketHandler
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticlePacketHandler
-import cn.coostack.cooparticlesapi.particles.ModParticles
+import cn.coostack.cooparticlesapi.particles.CooModParticles
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
+import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
+import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudParticle
+import cn.coostack.cooparticlesapi.particles.impl.ControlableEnchantmentEffect
+import cn.coostack.cooparticlesapi.particles.impl.ControlableEnchantmentParticle
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodParticle
 import cn.coostack.cooparticlesapi.test.particle.client.BarrierSwordGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.ScaleCircleGroupClient
@@ -28,8 +32,16 @@ object CooParticleAPIClient : ClientModInitializer {
             ClientParticleGroupManager.clearAllVisible()
         }
         ParticleFactoryRegistry.getInstance()
-            .register(ModParticles.testEndRod, ParticleFactoryRegistry.PendingParticleFactory {
+            .register(CooModParticles.testEndRod, ParticleFactoryRegistry.PendingParticleFactory {
                 return@PendingParticleFactory TestEndRodParticle.Factory(it)
+            })
+        ParticleFactoryRegistry.getInstance()
+            .register(CooModParticles.enchantment, ParticleFactoryRegistry.PendingParticleFactory {
+                return@PendingParticleFactory ControlableEnchantmentParticle.Factory(it)
+            })
+        ParticleFactoryRegistry.getInstance()
+            .register(CooModParticles.controlableCloud, ParticleFactoryRegistry.PendingParticleFactory {
+                return@PendingParticleFactory ControlableCloudParticle.Factory(it)
             })
         ClientParticleGroupManager.register(
             TestGroupClient::class.java, TestGroupClient.Provider()
@@ -43,7 +55,7 @@ object CooParticleAPIClient : ClientModInitializer {
         ClientParticleGroupManager.register(
             SequencedMagicCircleClient::class.java, SequencedMagicCircleClient.Provider()
         )
-        ModParticles.reg()
+        CooModParticles.reg()
     }
 
 

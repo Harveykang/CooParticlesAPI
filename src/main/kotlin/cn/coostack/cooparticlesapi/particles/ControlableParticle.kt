@@ -4,14 +4,16 @@ import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
 import cn.coostack.cooparticlesapi.particles.control.ParticleControler
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.client.particle.SpriteBillboardParticle
 import net.minecraft.client.world.ClientWorld
+import net.minecraft.particle.ParticleTypes
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.random.Random
 import org.joml.Vector2f
 import org.joml.Vector3f
-import java.util.UUID
+import java.util.*
 
 @Environment(EnvType.CLIENT)
 abstract class ControlableParticle(
@@ -21,6 +23,13 @@ abstract class ControlableParticle(
     val controlUUID: UUID
 ) : SpriteBillboardParticle(world, pos.x, pos.y, pos.z, velocity.x, velocity.y, velocity.z) {
     val controler: ParticleControler = ControlParticleManager.getControl(controlUUID)!!
+
+    /**
+     * 粒子渲染类型
+     * 可以使用
+     *
+     */
+    var textureSheet: ParticleTextureSheet = ParticleTextureSheet.PARTICLE_SHEET_LIT
 
     /**
      * 是否调用 net.minecraft.client.particle.Particle中的tick方法
@@ -38,6 +47,18 @@ abstract class ControlableParticle(
             this.x = value.x
             this.y = value.y
             this.z = value.z
+        }
+
+    /**
+     * @see scale
+     * 粒子尺寸
+     */
+    var size: Float
+        get() = super.scale
+        set(value) {
+            super.scale = value
+            // 对应scale方法
+            this.setBoundingBoxSpacing(0.2f * scale, 0.2f * scale)
         }
 
     /**
@@ -193,6 +214,8 @@ abstract class ControlableParticle(
 
     private var lastPreview = cloneVec(pos)
     private var update = false
+
+
     fun teleportTo(pos: Vec3d) {
         lastPreview = cloneVec(pos)
         update = true
@@ -226,6 +249,12 @@ abstract class ControlableParticle(
             this.pos = lastPreview
             update = false
         }
+
+//        ParticleTypes.ENCHANTED_HIT
+    }
+
+    override fun getType(): ParticleTextureSheet? {
+        return textureSheet
     }
 
     private fun cloneVec(vec: Vec3d): Vec3d {

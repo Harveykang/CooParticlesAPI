@@ -4,11 +4,170 @@ import net.minecraft.util.math.Vec3d
 import org.joml.Vector3f
 import java.util.ArrayList
 import kotlin.math.*
+import kotlin.random.Random
 
 object Math3DUtil {
 
-    fun colorOf(x: Int, y: Int, z: Int): Vector3f {
-        return Vector3f(x.toFloat() / 255, y.toFloat() / 255, z.toFloat() / 255)
+    fun colorOf(r: Int, g: Int, b: Int): Vector3f {
+        return Vector3f(r.toFloat() / 255, g.toFloat() / 255, b.toFloat() / 255)
+    }
+
+    /**
+     * 在 XZ 平面上生成离散化的三维环形分布点集
+     * @param r       目标圆环的基础半径（单位：方块），建议非负值
+     * @param pointRadius  在discrete属性设置为0时 点所在的圆环的位置角度参数 输入弧度制
+     * @param discrete 最大分散距离（单位：方块），控制点与标准圆环的偏离程度：
+     *                - = 0 时所有点严格位于圆环上
+     *                - > 0 时点会在三维空间中以该值为最大半径随机偏移
+     *                实际偏移量为 [0, discrete] 的随机值，负值会被自动归零
+     */
+    fun getSingleDiscreteOnCircleXZ(r: Double, discrete: Double, pointRadius: Double): RelativeLocation {
+        val effectiveDiscrete = discrete.coerceAtLeast(0.0)  // 确保非负分散度
+        // 生成标准圆环坐标 (y 固定为 0)
+        val x0 = r * cos(pointRadius)
+        val z0 = r * sin(pointRadius)
+        // 生成三维随机偏移向量（球坐标系）
+        val u = Random.nextDouble()
+        val v = Random.nextDouble()
+        val azimuth = 2 * PI * u      // 方位角 [0, 2π)
+        val polar = acos(2 * v - 1)   // 极角 [0, π] 保证均匀分布
+        val offsetMag = Random.nextDouble() * effectiveDiscrete  // 偏移量 [0, discrete]
+        // 转换为笛卡尔坐标系的偏移量
+        val horizontal = offsetMag * sin(polar)
+        val dx = horizontal * cos(azimuth)
+        val dz = horizontal * sin(azimuth)
+        val dy = offsetMag * cos(polar)  // 垂直方向偏移
+        // 合成最终坐标
+        return RelativeLocation(
+            x = x0 + dx,
+            y = dy,  // 原 y 坐标为 0，直接使用偏移量
+            z = z0 + dz
+        )
+    }
+
+    /**
+     * 在 XZ 平面上生成离散化的三维环形分布点集
+     * @param r       目标圆环的基础半径（单位：方块），建议非负值
+     * @param count   需要生成的离散点数量，必须为正整数
+     * @param discrete 最大分散距离（单位：方块），控制点与标准圆环的偏离程度：
+     *                - = 0 时所有点严格位于圆环上
+     *                - > 0 时点会在三维空间中以该值为最大半径随机偏移
+     *                实际偏移量为 [0, discrete] 的随机值，负值会被自动归零
+     */
+    fun getDiscreteCircleXZ(r: Double, count: Int, discrete: Double): List<RelativeLocation> {
+        val result = mutableListOf<RelativeLocation>()
+        if (count <= 0) return result
+        val angleStep = 2 * PI / count  // 等分圆周角度
+        repeat(count) { i ->
+            val baseAngle = i * angleStep
+            result.add(getSingleDiscreteOnCircleXZ(r, discrete, baseAngle))
+        }
+        return result
+    }
+
+    /**
+     * @param count 点的个数
+     * @return 在xz平面上的圆的点
+     */
+    fun getCircleXZ(r: Double, count: Int): List<RelativeLocation> {
+        val res = ArrayList<RelativeLocation>()
+        val step = 2 * PI / count
+        var radius = 0.0
+        repeat(count) {
+            res.add(
+                RelativeLocation(
+                    r * cos(radius), 0.0, r * sin(radius),
+                )
+            )
+            radius += step
+        }
+        return res
+    }
+
+    /**
+     * 生成以 r为半径的圆的 内接正n边形
+     * @param n 多边形的边数 必须大于等于3
+     * @param edgeCount 每一条边的点的个数
+     * @param r 半径
+     */
+    fun getPolygonInCircleLocations(n: Int, edgeCount: Int, r: Double): List<RelativeLocation> {
+        require(n >= 3) { "n must be at least 3" }
+        require(edgeCount >= 1) { "edgeCount must be at least 1" }
+
+        // 生成正n边形的顶点列表（xz平面，圆心在原点）
+        val vertices = List(n) { i ->
+            val theta = 2 * PI * i / n
+            Vec3d(r * cos(theta), 0.0, r * sin(theta))
+        }
+
+        val result = mutableListOf<RelativeLocation>()
+
+        for (i in 0 until n) {
+            val j = (i + 1) % n
+            val vi = vertices[i]
+            val vj = vertices[j]
+
+            // 计算边的方向向量
+            val direction = Vec3d(vj.x - vi.x, vj.y - vi.y, vj.z - vi.z)
+            val length = direction.length()
+
+            // 计算步长（若edgeCount为1，则步长为0，仅包含起点）
+            val step = if (edgeCount > 1) length / (edgeCount - 1) else 0.0
+
+            // 生成当前边的点集
+            val lineLocations = getLineLocations(vi, direction, step, edgeCount)
+            result.addAll(lineLocations)
+        }
+
+        return result
+    }
+
+    /**
+     * 让两个点集合
+     * 连线规则如下
+     * 前提: points.size > to.size
+     * 建议输入的点集合的个数 points.size % to.size == 0
+     * 如果不为0 则会有points.size % to.size 个点不会被链接
+     * 如果输入的点集合大小相反则链接规则也会相反
+     * 令 step = points.size / to.size (整除)
+     * points 的第i个点到第i+step -1个点会链接 to的第i个点
+     *
+     * 如果你使用了两个圆(Math3DUtil.getCircleXZ())上平均分布的点来调用函数
+     * 会发现两个圆的第一个点其实角度相同
+     * 所以你需要使用 Math3DUtil.rotateAsAxis() 对小的圆进行旋转
+     * 旋转角度为 -PI / points.size 这样得到的线是均匀分布的
+     * @param preLineCount 每个链接的直线的粒子个数
+     * @return 返回一个二维列表, 代表直线点集合的集合
+     */
+    fun connectLines(
+        points: List<RelativeLocation>,
+        to: List<RelativeLocation>,
+        preLineCount: Int
+    ): MutableList<List<RelativeLocation>> {
+        if (points.isEmpty() || to.isEmpty()) {
+            return mutableListOf()
+        }
+        // 确定较大的列表和较小的列表
+        val (bigger, smaller) = if (points.size >= to.size) points to to else to to points
+        val step = bigger.size / smaller.size
+        val remainder = bigger.size % smaller.size
+        val result = mutableListOf<List<RelativeLocation>>()
+        smaller.forEachIndexed { index, smallPoint ->
+            val currentStep = if (index < remainder) step + 1 else step
+            val startIndex = index * step + minOf(index, remainder)
+            for (offset in 0 until currentStep) {
+                val biggerIndex = startIndex + offset
+                if (biggerIndex >= bigger.size) break
+                val line = getLineLocations(
+                    bigger[biggerIndex],
+                    smallPoint,
+                    preLineCount
+                )
+                result.add(line)
+            }
+        }
+
+        return result
     }
 
     /**
@@ -119,12 +278,13 @@ object Math3DUtil {
                 result.add(
                     RelativeLocation(
                         r * cos(rx) * cos(ry),
-                        r * sin(rx) * sin(ry),
-                        r * sin(ry)
+                        r * sin(rx),
+                        r * sin(ry) * cos(rx)
                     )
                 )
                 ry += step
             }
+            ry = 0.0
             rx += step
         }
         return result
@@ -265,6 +425,10 @@ object Math3DUtil {
             res.add(next)
         }
         return res
+    }
+
+    fun getLineLocations(start: RelativeLocation, end: RelativeLocation, count: Int): List<RelativeLocation> {
+        return getLineLocations(start.toVector(), end.toVector(), count)
     }
 
     /**

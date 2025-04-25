@@ -11,10 +11,10 @@ import net.minecraft.network.codec.PacketCodec
 import net.minecraft.particle.ParticleType
 import java.util.UUID
 
-class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
+class ControlableCloudEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
     companion object {
         @JvmStatic
-        val codec: MapCodec<TestEndRodEffect> = RecordCodecBuilder.mapCodec {
+        val codec: MapCodec<ControlableCloudEffect> = RecordCodecBuilder.mapCodec {
             return@mapCodec it.group(
                 Codec.BYTE_BUFFER.fieldOf("uuid").forGetter { effect ->
                     val toString = effect.controlUUID.toString()
@@ -23,7 +23,7 @@ class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUI
                     buffer.nioBuffer()
                 }
             ).apply(it) { buf ->
-                TestEndRodEffect(
+                ControlableCloudEffect(
                     UUID.fromString(
                         String(buf.array())
                     )
@@ -32,16 +32,17 @@ class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUI
         }
 
         @JvmStatic
-        val packetCode: PacketCodec<RegistryByteBuf, TestEndRodEffect> = PacketCodec.of(
+        val packetCode: PacketCodec<RegistryByteBuf, ControlableCloudEffect> = PacketCodec.of(
             { effect, buf ->
                 buf.writeUuid(effect.controlUUID)
             }, {
-                TestEndRodEffect(it.readUuid())
+                ControlableCloudEffect(it.readUuid())
             }
         )
     }
 
-    override fun getType(): ParticleType<*> {
-        return CooModParticles.testEndRod
+
+    override fun getType(): ParticleType<*>? {
+        return CooModParticles.controlableCloud
     }
 }

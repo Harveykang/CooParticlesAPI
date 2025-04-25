@@ -7,9 +7,9 @@ import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.client.particle.SpriteProvider
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.util.math.Vec3d
-import java.util.*
+import java.util.UUID
 
-class TestEndRodParticle(
+class ControlableEnchantmentParticle(
     world: ClientWorld,
     pos: Vec3d,
     velocity: Vec3d,
@@ -18,6 +18,12 @@ class TestEndRodParticle(
 ) :
     ControlableParticle(world, pos, velocity, controlUUID) {
 
+    init {
+        setSprite(provider.getSprite(age, maxAge))
+        controler.addPreTickAction {
+            setSpriteForAge(provider)
+        }
+    }
 
     init {
         setSprite(provider.getSprite(age, maxAge))
@@ -26,9 +32,9 @@ class TestEndRodParticle(
         }
     }
 
-    class Factory(val provider: SpriteProvider) : ParticleFactory<TestEndRodEffect> {
+    class Factory(val provider: SpriteProvider) : ParticleFactory<ControlableEnchantmentEffect> {
         override fun createParticle(
-            parameters: TestEndRodEffect,
+            parameters: ControlableEnchantmentEffect,
             world: ClientWorld,
             x: Double,
             y: Double,
@@ -37,7 +43,7 @@ class TestEndRodParticle(
             velocityY: Double,
             velocityZ: Double
         ): Particle {
-            return TestEndRodParticle(
+            return ControlableEnchantmentParticle(
                 world,
                 Vec3d(x, y, z),
                 Vec3d(velocityX, velocityY, velocityZ),
@@ -46,4 +52,5 @@ class TestEndRodParticle(
             )
         }
     }
+
 }
