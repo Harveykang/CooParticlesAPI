@@ -55,11 +55,12 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
         )
         p3.forEach {
             val withData = withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
-                color = Math3DUtil.colorOf(0, 255, 255)
-                maxAge = 120
+                color = Math3DUtil.colorOf(1, 120, 243)
+//                color = Math3DUtil.colorOf(100, 255, 243)
+                maxAge = 100
                 size = 0.1f
                 particleAlpha = 0.8f
-                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_OPAQUE
             }
             res[withData] = it
         }
@@ -103,7 +104,7 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
                 maxAge = 120
                 size = 0.2f
                 particleAlpha = 0.8f
-                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_LIT
             }.withControler { c ->
 //                c.addPreTickAction {
 //                    currentAge++
@@ -144,4 +145,5 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
             scale(scale + 1.0 / anMaxTick)
         }
     }
+
 }

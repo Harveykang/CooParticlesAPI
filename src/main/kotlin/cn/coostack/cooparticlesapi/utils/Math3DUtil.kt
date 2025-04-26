@@ -8,6 +8,9 @@ import kotlin.random.Random
 
 object Math3DUtil {
 
+    /**
+     * 将RGB值转换为Minecraft粒子使用的 rgb值(/255)
+     */
     fun colorOf(r: Int, g: Int, b: Int): Vector3f {
         return Vector3f(r.toFloat() / 255, g.toFloat() / 255, b.toFloat() / 255)
     }
@@ -223,9 +226,7 @@ object Math3DUtil {
     }
 
     /**
-     * 此函数在计算上误将 弧度制输入成了角度制 导致结果出现偏差(虽然点大差不差, 因为360 * 0.1的 3600点的精度)
-     * 足矣覆盖误差 但是要更加正确完整的结果请使用 输入count计算精度的函数版本
-     *
+     * 生成以r1为半径的圆上的动点A为圆心 r2为半径 上的动点P的轨迹 点A的移动速度为w1 点P的移动速度为w2
      * @param r1 中心圆的半径
      * @param r2 中心圆上的圆的半径
      * @param w1 中心圆的角速度

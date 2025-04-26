@@ -2,10 +2,16 @@ package cn.coostack.cooparticlesapi.particles
 
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
 import cn.coostack.cooparticlesapi.particles.control.ParticleControler
+import com.mojang.blaze3d.platform.GlStateManager
+import com.mojang.blaze3d.systems.RenderSystem
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.minecraft.client.particle.Particle
 import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.client.particle.SpriteBillboardParticle
+import net.minecraft.client.render.Camera
+import net.minecraft.client.render.LightmapTextureManager
+import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.particle.ParticleTypes
 import net.minecraft.util.math.Box
@@ -259,6 +265,13 @@ abstract class ControlableParticle(
 
     private fun cloneVec(vec: Vec3d): Vec3d {
         return Vec3d(vec.x, vec.y, vec.z)
+    }
+
+    /**
+     * 在黑夜里粒子也会很亮
+     */
+    override fun getBrightness(tint: Float): Int {
+        return LightmapTextureManager.MAX_LIGHT_COORDINATE
     }
 
 }
