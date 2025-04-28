@@ -46,78 +46,92 @@ class ScaleCircleGroupClient(uuid: UUID, val bindPlayer: UUID) : ControlablePart
         points.addAll(
             Math3DUtil.getCircleXZ(4.0, 360)
         )
-        val p3 = ArrayList<RelativeLocation>()
-        p3.addAll(Math3DUtil.getPolygonInCircleLocations(3, 120, 4.0))
-        p3.addAll(
-            PointsBuilder.of(Math3DUtil.getPolygonInCircleLocations(3, 120, 4.0))
-                .rotateAsAxis(PI / 3)
-                .create()
-        )
-        p3.forEach {
-            val withData = withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
-                color = Math3DUtil.colorOf(1, 120, 243)
-//                color = Math3DUtil.colorOf(100, 255, 243)
-                maxAge = 100
-                size = 0.1f
-                particleAlpha = 0.8f
-                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_OPAQUE
-            }
-            res[withData] = it
-        }
-//        points.addAll(
-//            Math3DUtil.getBallLocations(3.0,32)
+//        val p3 = ArrayList<RelativeLocation>()
+//        p3.addAll(
+//            PointsBuilder()
+//                .addPointsWith {
+//                    getPolygonInCircleLocations(3, 120, 4.0)
+//                }
+//                .rotateAsAxis(PI / 3)
+//                .addPointsWithPolygonInCircle(3, 120, 4.0)
+//                .create()
 //        )
-//        points.addAll(
-//            Math3DUtil.getCircleXZ(7.0, 720)
-//        )
-//        points.addAll(
-//            Math3DUtil.getCircleXZ(6.0, 360)
-//        )
-//
-//        Math3DUtil.connectLines(
-//            Math3DUtil.getCircleXZ(7.0, 16),
-//            Math3DUtil.rotateAsAxis(Math3DUtil.getCircleXZ(6.0, 8), RelativeLocation.yAxis(), -PI / 16),
-//            10
-//        ).forEach {
-//            points.addAll(it)
-//        }
-//
-//        val p2 = ArrayList<RelativeLocation>()
-//        p2.apply {
-//            addAll(Math3DUtil.getCircleXZ(7.0, 16))
-//            addAll(Math3DUtil.rotateAsAxis(Math3DUtil.getCircleXZ(6.0, 8), RelativeLocation.yAxis(), -PI / 16))
-//        }
-//        p2.forEach {
-//            val withData = withEffect({ ParticleDisplayer.withSingle(ControlableCloudEffect(it)) }) {
-//                color = Math3DUtil.colorOf(255, 0, 0)
-//                maxAge = 120
-//                size = 0.3f
+//        p3.forEach {
+//            val withData = withEffect({ ParticleDisplayer.withSingle(TestEndRodEffect(it)) }) {
+//                color = Math3DUtil.colorOf(1, 120, 243)
+////                color = Math3DUtil.colorOf(100, 255, 243)
+//                maxAge = 100
+//                size = 0.1f
 //                particleAlpha = 0.8f
-//                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+//                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_OPAQUE
 //            }
 //            res[withData] = it
 //        }
-        val random = Random(System.currentTimeMillis())
-        points.forEach {
-            val withData = withEffect({ ParticleDisplayer.withSingle(ControlableEnchantmentEffect(it)) }) {
-                color = Vector3f(100 / 255f, 100 / 255f, 255 / 255f)
-                maxAge = 120
-                size = 0.2f
-                particleAlpha = 0.8f
-                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_LIT
-            }.withControler { c ->
-//                c.addPreTickAction {
-//                    currentAge++
-//                    if (currentAge >= maxAge) {
-//                        this@ScaleCircleGroupClient.canceled = true
-//                    }
-//                }
-                c.controlAction {
-                    currentAge = random.nextInt(maxAge)
+        res.putAll(
+            PointsBuilder()
+                .addPolygonInCircle(3, 120, 4.0)
+                .rotateAsAxis(PI / 3)
+                .addPolygonInCircle(3, 120, 4.0)
+                .addWith {
+                    getCircleXZ(5.0, 360).onEach { it.y++ }
                 }
-            }
-            res[withData] = it
-        }
+                .addWith {
+                    getCircleXZ(5.5, 360).onEach { it.y += 1.5 }
+                }
+                .addWith {
+                    connectLines(
+                        PointsBuilder.of(
+                            getCircleXZ(5.0, 16).onEach { it.y++ }
+                        ).rotateAsAxis(-PI / 32).create(),
+                        getCircleXZ(5.5, 32).onEach { it.y += 1.5 }, 15
+                    ).flatten()
+                }
+                .createWithParticleEffects {
+                    withEffect({
+                        ParticleDisplayer.withSingle(TestEndRodEffect(it))
+                    }) {
+                        color = Math3DUtil.colorOf(255, 0, 255)
+                        maxAge = 100
+                        size = 0.2f
+                    }
+                }
+        )
+
+        res.putAll(
+            PointsBuilder()
+                .addCircle(4.0, 360)
+                .addBall(5.0, 16)
+                .createWithParticleEffects {
+                    withEffect({
+                        ParticleDisplayer.withSingle(ControlableCloudEffect(it))
+                    }) {
+                        color = Math3DUtil.colorOf(255, 142, 169)
+                        maxAge = 100
+                    }
+                }
+        )
+        val random = Random(System.currentTimeMillis())
+
+        res.putAll(
+            PointsBuilder()
+                .addDiscreteCircleXZ(6.0, 720, 7.0)
+                .pointsOnEach {
+                    it.y += 1
+                }
+                .createWithParticleEffects {
+                    withEffect({ ParticleDisplayer.withSingle(ControlableEnchantmentEffect(it)) }) {
+                        color = Vector3f(100 / 255f, 100 / 255f, 255 / 255f)
+                        maxAge = 120
+                        size = 0.2f
+                        particleAlpha = 0.8f
+                        textureSheet = ParticleTextureSheet.PARTICLE_SHEET_LIT
+                    }.withControler { c ->
+                        c.controlAction {
+                            currentAge = random.nextInt(maxAge)
+                        }
+                    }
+                }
+        )
         return res
     }
 

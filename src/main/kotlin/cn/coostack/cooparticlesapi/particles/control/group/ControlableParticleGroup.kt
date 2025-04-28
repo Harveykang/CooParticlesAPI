@@ -153,11 +153,7 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
 
 
     open fun scale(new: Double) {
-        if (new < 0.0) {
-            CooParticleAPI.logger.error("scale can not be less than zero")
-            return
-        }
-        scale = new
+        scale = new.coerceAtLeast(0.01)
         if (displayed) {
             toggleScaleDisplayed()
         }

@@ -2,6 +2,7 @@ package cn.coostack.cooparticlesapi.particles
 
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
 import cn.coostack.cooparticlesapi.particles.control.ParticleControler
+import cn.coostack.cooparticlesapi.utils.Math3DUtil
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import net.fabricmc.api.EnvType
@@ -176,7 +177,7 @@ abstract class ControlableParticle(
     var particleAlpha: Float
         get() = alpha
         set(value) {
-            alpha = value
+            alpha = value.coerceIn(0f, 1f)
         }
 
     /**
@@ -238,7 +239,20 @@ abstract class ControlableParticle(
     }
 
     /**
-     * 请使用做为tick方法
+     * 防止频繁调用Math3DUtil (让键盘休息一会)
+     * 也不用调用 color = Vector3f(xxx/255f,xxx/255f,xxx/255f)
+     */
+    fun colorOfRGB(r: Int, g: Int, b: Int) {
+        color = Math3DUtil.colorOf(r.coerceIn(0, 255), g.coerceIn(0, 255), b.coerceIn(0, 255))
+    }
+
+    fun colorOfRGBA(r: Int, g: Int, b: Int, alpha: Float) {
+        color = Math3DUtil.colorOf(r.coerceIn(0, 255), g.coerceIn(0, 255), b.coerceIn(0, 255))
+        this.alpha = alpha.coerceIn(0f, 1f)
+    }
+
+    /**
+     * 请使用作为tick方法
      * @see ParticleControler.addPreTickAction
      */
     final override fun tick() {

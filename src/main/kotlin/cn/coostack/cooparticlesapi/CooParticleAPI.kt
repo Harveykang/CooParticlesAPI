@@ -6,8 +6,10 @@ import cn.coostack.cooparticlesapi.items.CooItems
 import cn.coostack.cooparticlesapi.items.group.CooItemGroup
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleS2C
+import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroupManager
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroup
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleStyleManager
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
@@ -16,10 +18,9 @@ import cn.coostack.cooparticlesapi.scheduler.CooScheduler
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
-import net.minecraft.particle.ParticleEffect
 import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
-
+import cn.coostack.cooparticlesapi.particles.ControlableParticleEffect
 object CooParticleAPI : ModInitializer {
     val logger = LoggerFactory.getLogger("CooParticleAPI")!!
     const val MOD_ID = "cooparticlesapi"
@@ -51,7 +52,7 @@ object CooParticleAPI : ModInitializer {
      * @see ControlableParticleGroupProvider 服务端发送数据包后 解析成ControlableParticleGroup的构造器
      * @see ServerParticleGroup 用于同步给其他客户端的服务器粒子组控制器对象
      * @see ControlableParticle 能够被控制的粒子 (原版addParticle是不提供粒子对象的)
-     * @see ParticleEffect 对应所需要的粒子效果
+     * @see ControlableParticleEffect 对应所需要的粒子效果
      */
     override fun onInitialize() {
         CooItemGroup.reg()
@@ -59,13 +60,15 @@ object CooParticleAPI : ModInitializer {
         APIConfigManager.loadConfig()
         ServerTickEvents.START_SERVER_TICK.register { _ ->
             ServerParticleGroupManager.upgrade()
+            ParticleStyleManager.doTickServer()
             BarrageManager.doTick()
             scheduler.doTick()
         }
         ServerLifecycleEvents.SERVER_STARTED.register { server ->
             this.server = server
         }
-        PacketParticleGroupS2C.Companion.init()
-        PacketParticleS2C.Companion.init()
+        PacketParticleGroupS2C.init()
+        PacketParticleS2C.init()
+        PacketParticleStyleS2C.init()
     }
 }

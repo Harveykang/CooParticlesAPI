@@ -1,5 +1,6 @@
 package cn.coostack.cooparticlesapi.particles
 
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
 import net.minecraft.client.world.ClientWorld
@@ -19,9 +20,24 @@ interface ParticleDisplayer {
         fun withGroup(group: ControlableParticleGroup): ParticleDisplayer {
             return ParticleGroupDisplayer(group)
         }
+
+        @JvmStatic
+        fun withStyle(style: ParticleGroupStyle): ParticleDisplayer {
+            return ParticleStyleDisplayer(style)
+        }
     }
 
     fun display(loc: Vec3d, world: ClientWorld): Controlable<*>?
+    class ParticleStyleDisplayer(val style: ParticleGroupStyle) : ParticleDisplayer {
+        override fun display(
+            loc: Vec3d,
+            world: ClientWorld
+        ): Controlable<*> {
+            style.display(loc, world)
+            return style
+        }
+    }
+
     class SingleParticleDisplayer(val effect: ControlableParticleEffect) : ParticleDisplayer {
         /**
          * 始终返回null 因为此时粒子一定还未设置成功

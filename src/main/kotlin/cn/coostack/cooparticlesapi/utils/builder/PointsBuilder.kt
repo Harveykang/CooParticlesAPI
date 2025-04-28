@@ -1,5 +1,8 @@
 package cn.coostack.cooparticlesapi.utils.builder
 
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
+import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
+import cn.coostack.cooparticlesapi.particles.control.group.SequencedParticleGroup
 import cn.coostack.cooparticlesapi.utils.Math3DUtil
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import net.minecraft.util.math.Vec3d
@@ -27,14 +30,122 @@ class PointsBuilder {
     }
 
     var axis = RelativeLocation.yAxis()
+        private set
     private val points = ArrayList<RelativeLocation>()
+
+    fun axis(axis: RelativeLocation): PointsBuilder {
+        this.axis = axis
+        return this
+    }
+
+    /**
+     * 循环对每一个已经加入到builder的点进行同一个操作
+     */
+    fun pointsOnEach(handler: (RelativeLocation) -> Unit): PointsBuilder {
+        points.onEach { handler.invoke(it) }
+        return this
+    }
 
     fun addPoints(enter: Collection<RelativeLocation>): PointsBuilder {
         points.addAll(enter)
         return this
     }
 
+    fun addWith(handler: Math3DUtil.() -> Collection<RelativeLocation>): PointsBuilder = addPoints(
+        handler(Math3DUtil)
+    )
+
+
+    fun addDiscreteCircleXZ(r: Double, count: Int, discrete: Double): PointsBuilder = addWith {
+        getDiscreteCircleXZ(r, count, discrete)
+    }
+
+    fun addCircle(r: Double, count: Int): PointsBuilder = addPoints(
+        Math3DUtil.getCircleXZ(r, count)
+    )
+
+    fun addBall(r: Double, countPow: Int): PointsBuilder = addPoints(
+        Math3DUtil.getBallLocations(r, countPow)
+    )
+
+    fun addCycloidGraphic(
+        r1: Double,
+        r2: Double,
+        w1: Int,
+        w2: Int,
+        count: Int,
+        scale: Double
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getCycloidGraphic(
+            r1, r2, w1, w2, count, scale
+        )
+    )
+
+
+    fun addPolygonInCircle(n: Int, edgeCount: Int, r: Double): PointsBuilder = addPoints(
+        Math3DUtil.getPolygonInCircleLocations(n, edgeCount, r)
+    )
+
+
+    fun addRoundShape(r: Double, step: Double, preCircleCount: Int): PointsBuilder = addPoints(
+        Math3DUtil.getRoundScapeLocations(r, step, preCircleCount)
+    )
+
+
+    fun addRoundShape(r: Double, step: Double, minCircleCount: Int, maxCircleCount: Int): PointsBuilder =
+        addWith {
+            getRoundScapeLocations(r, step, minCircleCount, maxCircleCount)
+        }
+
+
+    fun addLine(
+        start: RelativeLocation, end: RelativeLocation, count: Int
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getLineLocations(start, end, count)
+    )
+
+
+    fun addLine(
+        start: Vec3d, end: Vec3d, count: Int
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getLineLocations(start, end, count)
+    )
+
+
+    fun addLine(
+        direction: RelativeLocation, step: Double, count: Int
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getLineLocations(Vec3d.ZERO, direction.toVector(), step, count)
+    )
+
+
+    fun addLine(
+        direction: Vec3d, step: Double, count: Int
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getLineLocations(Vec3d.ZERO, direction, step, count)
+    )
+
+
+    fun addLine(
+        origin: RelativeLocation, direction: RelativeLocation, step: Double, count: Int
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getLineLocations(origin.toVector(), direction.toVector(), step, count)
+    )
+
+
+    fun addLine(
+        origin: Vec3d, direction: Vec3d, step: Double, count: Int
+    ): PointsBuilder = addPoints(
+        Math3DUtil.getLineLocations(origin, direction, step, count)
+    )
+
+
     fun rotateAsAxis(radius: Double): PointsBuilder {
+        Math3DUtil.rotateAsAxis(points, axis, radius)
+        return this
+    }
+
+    fun rotateAsAxis(radius: Double, axis: RelativeLocation): PointsBuilder {
         Math3DUtil.rotateAsAxis(points, axis, radius)
         return this
     }
@@ -59,13 +170,40 @@ class PointsBuilder {
         return this
     }
 
-
     fun clear(): PointsBuilder {
         points.clear()
         return this
     }
 
-
     fun create(): List<RelativeLocation> = points
 
+    fun createWithParticleEffects(
+        dataBuilder: (relative: RelativeLocation) -> ControlableParticleGroup.ParticleRelativeData
+    ): Map<ControlableParticleGroup.ParticleRelativeData, RelativeLocation> {
+        return mapOf(
+            *points.map {
+                dataBuilder(it) to it
+            }.toTypedArray()
+        )
+    }
+
+    fun createWithSequencedParticleEffects(
+        dataBuilder: (relative: RelativeLocation) -> SequencedParticleGroup.SequencedParticleRelativeData
+    ): Map<SequencedParticleGroup.SequencedParticleRelativeData, RelativeLocation> {
+        return mapOf(
+            *points.map {
+                dataBuilder(it) to it
+            }.toTypedArray()
+        )
+    }
+
+    fun createWithStyleData(
+        dataBuilder: (relative: RelativeLocation) -> ParticleGroupStyle.StyleData
+    ): Map<ParticleGroupStyle.StyleData, RelativeLocation> {
+        return mapOf(
+            *points.map {
+                dataBuilder(it) to it
+            }.toTypedArray()
+        )
+    }
 }

@@ -2,8 +2,11 @@ package cn.coostack.cooparticlesapi
 
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleS2C
+import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticleGroupPacketHandler
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticlePacketHandler
+import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticleStylePacketHandler
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleStyleManager
 import cn.coostack.cooparticlesapi.particles.CooModParticles
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
 import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
@@ -15,6 +18,7 @@ import cn.coostack.cooparticlesapi.test.particle.client.BarrierSwordGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.ScaleCircleGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.SequencedMagicCircleClient
 import cn.coostack.cooparticlesapi.test.particle.client.TestGroupClient
+import cn.coostack.cooparticlesapi.test.particle.style.ExampleStyle
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
@@ -27,6 +31,7 @@ object CooParticleAPIClient : ClientModInitializer {
         particleGroupPacketListener()
         ClientTickEvents.START_WORLD_TICK.register {
             ClientParticleGroupManager.doClientTick()
+            ParticleStyleManager.doTickClient()
         }
         ClientWorldEvents.AfterClientWorldChange { _, _ ->
             ClientParticleGroupManager.clearAllVisible()
@@ -55,16 +60,24 @@ object CooParticleAPIClient : ClientModInitializer {
         ClientParticleGroupManager.register(
             SequencedMagicCircleClient::class.java, SequencedMagicCircleClient.Provider()
         )
+        ParticleStyleManager.register(ExampleStyle::class.java, ExampleStyle.Provider())
         CooModParticles.reg()
     }
 
 
     private fun particleGroupPacketListener() {
         ClientPlayNetworking.registerGlobalReceiver(
-            PacketParticleGroupS2C.Companion.payloadID,
+            PacketParticleGroupS2C.payloadID,
             ClientParticleGroupPacketHandler
         )
-        ClientPlayNetworking.registerGlobalReceiver(PacketParticleS2C.Companion.payloadID, ClientParticlePacketHandler)
+        ClientPlayNetworking.registerGlobalReceiver(
+            PacketParticleStyleS2C.payloadID,
+            ClientParticleStylePacketHandler
+        )
+        ClientPlayNetworking.registerGlobalReceiver(
+            PacketParticleS2C.payloadID,
+            ClientParticlePacketHandler
+        )
     }
 
 

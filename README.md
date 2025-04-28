@@ -483,3 +483,162 @@ class SequencedMagicCircleServer(val bindPlayer: UUID) : SequencedServerParticle
     }
 }
 ```
+
+# 使用 ParticleGroupStyle
+## 使用此类的原因
+在进行客户端和服务器的数据渲染同步时发现, 每次进行一个新的操作都要在服务器类上复制一样的代码 创建一样的变量, 相当的麻烦
+于是基于 ControlableParticleGroup 和 ServerParticleGroup 构造了此类
+## 使用方法
+```kotlin
+class ExampleStyle(val bindPlayer: UUID, uuid: UUID = UUID.randomUUID()) :
+    /**
+     * 第一个参数代表玩家可视范围 默认32.0
+     * 第二个参数代表这个粒子样式的唯一标识符
+     * 在这里直接使用默认值(randomUUID)即可
+      */
+    ParticleGroupStyle(16.0, uuid) {
+    /**
+     *  和 ControlableParticleGroup一样 为了在服务器构建这个类 同时也需要自己制作构建器
+     */
+    class Provider : ParticleStyleProvider {
+        override fun createStyle(
+            uuid: UUID,
+            args: Map<String, ParticleControlerDataBuffer<*>>
+        ): ParticleGroupStyle {
+            val player = args["bind_player"]!!.loadedValue as UUID
+            return ExampleStyle(player, uuid)
+        }
+    }
+
+    //  自定义参数
+    val maxScaleTick = 60
+    var scaleTick = 0
+    val maxTick = 240
+    var current = 0
+    var angleSpeed = PI / 72
+    
+    init {
+        // 如果你想要修改基类 (ParticleGroupStyle)
+        // 不要在beforeDisplay修改 在构造方法内修改
+        // 否则会出现联机客户端不同步的问题 (或者使用change?)
+        scale = 1.0 / maxScaleTick
+    }
+
+    /**
+     * 对应 ControlableParticleGroup的loadParticleLocations方法
+     */
+    override fun getCurrentFrames(): Map<StyleData, RelativeLocation> {
+        // 这里采用了自制的点图形制作器 查阅 cn.coostack.cooparticlesapi.utils.builder.PointsBuilder
+        val res = mutableMapOf<StyleData, RelativeLocation>().apply {
+            putAll(
+                PointsBuilder()
+                    .addDiscreteCircleXZ(8.0, 720, 10.0)
+                    .createWithStyleData {
+                        // 支持单个粒子
+                        StyleData { ParticleDisplayer.withSingle(ControlableCloudEffect(it)) }
+                            .withParticleHandler {
+                                colorOfRGB(127, 139, 175)
+                                this.scale(1.5f)
+                                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_LIT
+                            }
+                    })
+            putAll(
+                PointsBuilder()
+                    .addCircle(6.0, 4)
+                    .pointsOnEach { it.y -= 12.0 }
+                    .addCircle(6.0, 4)
+                    .pointsOnEach { it.y += 6.0 }
+                    // 这里要你的Data构建器
+                    .createWithStyleData {
+                        // 相当于ControlableParticleGroup的 withEffect
+                        StyleData {
+                            // 也支持粒子组合
+                            // 如果有其他style也可以改成 ParticleDisplayer.withStyle(xxxStyle(it,...))
+                            ParticleDisplayer.withGroup(
+                                MagicSubGroup(it, bindPlayer)
+                            )
+                        }
+                    }
+            )
+        }
+        return res
+    }
+
+    
+    override fun onDisplay() {
+        // 开启参数自动同步
+        autoToggle = true
+
+        /**
+         * 对于区分客户端环境和服务器环境
+         * 此类提供了 client 属性
+         * 或者使用 world!!.isClient 也可以查询是否为客户端
+         */
+        addPreTickAction {
+            if (scaleTick++ >= maxScaleTick) {
+                return@addPreTickAction
+            }
+            scale(scale + 1.0 / maxScaleTick)
+        }
+        addPreTickAction {
+            current++
+            if (current >= maxTick) {
+                remove()
+            }
+            val player = world!!.getPlayerByUuid(bindPlayer) ?: return@addPreTickAction
+            teleportTo(player.pos)
+            rotateParticlesAsAxis(angleSpeed)
+        }
+    }
+    
+    // 参数自动同步时, 服务器的这些参数会自动同步到每一个客户端上
+    override fun writePacketArgs(): Map<String, ParticleControlerDataBuffer<*>> {
+        return mapOf(
+            "current" to ParticleControlerDataBuffers.int(current),
+            "angle_speed" to ParticleControlerDataBuffers.double(angleSpeed),
+            "bind_player" to ParticleControlerDataBuffers.uuid(bindPlayer),
+            "scaleTick" to ParticleControlerDataBuffers.int(scaleTick),
+        )
+    }
+    // 获取来自服务器的同步数据时, 执行此方法
+    override fun readPacketArgs(args: Map<String, ParticleControlerDataBuffer<*>>) {
+        if (args.containsKey("current")) {
+            current = args["current"]!!.loadedValue as Int
+        }
+        if (args.containsKey("angle_speed")) {
+            angleSpeed = args["angle_speed"]!!.loadedValue as Double
+        }
+        if (args.containsKey("scaleTick")) {
+            scaleTick = args["scaleTick"]!!.loadedValue as Int
+        }
+    }
+}
+```
+
+完成类的构建时 需要在ClientModInitializer进行注册
+```kotlin
+    ParticleStyleManager.register(ExampleStyle::class.java, ExampleStyle.Provider())
+```
+如何在服务器生成此粒子样式?
+这里以Item为例
+```kotlin
+    class TestStyleItem : Item(Settings()) {
+    override fun use(world: World, user: PlayerEntity, hand: Hand): TypedActionResult<ItemStack?>? {
+        val res = super.use(world, user, hand)
+        // 如果你在world.isClient 为true环境下生成粒子
+        // 则该生成只会针对这一个客户端
+        // 否则就是在服务器生成- 所有符合条件的玩家都能看到
+        if (world.isClient) {
+            return res
+        }
+        val style = ExampleStyle(user.uuid)
+        // server world
+        ParticleStyleManager.spawnStyle(world, user.pos, style)
+        // 测试自动同步用的延时
+        CooParticleAPI.scheduler.runTask(30) {
+            style.angleSpeed += PI / 72
+        }
+        return res
+    }
+}
+```
