@@ -59,10 +59,13 @@ abstract class AbstractBarrage(
         val block = world.getBlockState(blockPos)
         val result = BarrageHitResult()
         if (!block.isAir) {
-            if (block.isLiquid && !options.acrossLiquid) {
-                result.hitBlockState = block
-                hit(result)
-            } else if (!options.acrossBlock) {
+            val shape = block.getCollisionShape(world, blockPos)
+            if (block.isLiquid) {
+                if (!options.acrossLiquid) {
+                    result.hitBlockState = block
+                    hit(result)
+                }
+            } else if (!options.acrossBlock && (!shape.isEmpty || !options.acrossEmptyCollectionShape)) {
                 result.hitBlockState = block
                 hit(result)
             }

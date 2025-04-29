@@ -17,6 +17,11 @@ class BarrageOption {
     var acrossBlock = false
 
     /**
+     * 是否可以穿过类似 草 这种没有方块碰撞箱的方块
+     */
+    var acrossEmptyCollectionShape = true
+
+    /**
      * 是否可以穿过液体
      * 如果为false则遇到液体会触发onHit方法
      */
