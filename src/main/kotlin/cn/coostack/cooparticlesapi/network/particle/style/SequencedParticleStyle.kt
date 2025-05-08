@@ -248,6 +248,17 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
         super.toggleScale(locations.toMap())
     }
 
+    override fun scale(new: Double) {
+        if (new < 0.0) {
+            CooParticleAPI.logger.error("scale can not be less than zero")
+            return
+        }
+        scale = new
+        if (displayed) {
+            toggleScaleDisplayed()
+        }
+    }
+
     override fun display(pos: Vec3d, world: World) {
         if (displayed) {
             return
@@ -410,13 +421,11 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
     }
 
     final override fun toggleScaleDisplayed() {
-        if (scale == 1.0) {
-            return
-        }
         sequencedParticles.forEach {
             val uuid = it.first.uuid
             val len = particleDefaultLength[uuid]!!
             val value = it.second
+            if (len in -1e-3..1e-3) return@forEach
             value.multiply(len * scale / value.length())
         }
     }

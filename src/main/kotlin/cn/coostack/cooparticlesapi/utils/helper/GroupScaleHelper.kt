@@ -30,9 +30,6 @@ class GroupScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int) :
     }
 
     override fun scale(scale: Double) {
-        if (scale < minScale || scale >= maxScale) {
-            return
-        }
-        group.scale(scale)
+        group.scale(scale.coerceIn(minScale, maxScale))
     }
 }

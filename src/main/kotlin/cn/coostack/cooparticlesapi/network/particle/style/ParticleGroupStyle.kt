@@ -307,10 +307,6 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
                 particleDefaultLength[uuid] = it.value.length()
             }
         }
-        if (scale == 1.0) {
-            return
-        }
-
         locations.forEach {
             val uuid = it.key.uuid
             val len = particleDefaultLength[uuid]!!
@@ -331,13 +327,11 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
     }
 
     protected open fun toggleScaleDisplayed() {
-        if (scale == 1.0) {
-            return
-        }
         particleLocations.forEach {
             val uuid = it.key.controlUUID()
             val len = particleDefaultLength[uuid]!!
             val value = it.value
+            if (len in -1e-3 .. 1e-3) return@forEach
             value.multiply(len * scale / value.length())
         }
     }

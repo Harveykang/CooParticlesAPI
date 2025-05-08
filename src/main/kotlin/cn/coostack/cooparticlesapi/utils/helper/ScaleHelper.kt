@@ -18,6 +18,9 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
     }
 
     fun recalculateStep(): ScaleHelper {
+        val temp = min(minScale, maxScale)
+        maxScale = max(minScale, maxScale)
+        minScale = temp
         step = abs(maxScale - minScale) / scaleTick
         return this
     }
@@ -42,6 +45,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         if (getLoadedGroup() == null) {
             return
         }
+        current = 0
         scale(minScale)
     }
 
@@ -49,6 +53,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         if (getLoadedGroup() == null) {
             return
         }
+        current = scaleTick
         scale(maxScale)
     }
 
