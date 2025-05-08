@@ -29,6 +29,11 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
         override fun compareTo(other: SequencedParticleRelativeData): Int {
             return order - other.order
         }
+
+        override fun equals(other: Any?): Boolean {
+            return other === this
+        }
+
     }
 
     val displayedStatus: LongArray by lazy {
@@ -110,7 +115,7 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
             return
         }
 
-        createWithStatus(index, status)
+        toggleFromStatus(index, status)
         displayedStatus[page] = MathDataUtil.setStatusLong(container, bit, status)
     }
 
@@ -195,10 +200,7 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
                     break
                 }
                 val status = MathDataUtil.getStatusLong(container, bit)
-                if (status == 1) {
-                    createWithIndex(index)
-                }
-                createWithStatus(index, status == 1)
+                toggleFromStatus(index, status == 1)
             }
         }
     }
@@ -297,6 +299,7 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
         }
         particles[uuid] = controler
         particlesLocations[controler] = rl
+
         return true
     }
 
@@ -319,7 +322,7 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
         }
     }
 
-    private fun createWithStatus(index: Int, status: Boolean) {
+    private fun toggleFromStatus(index: Int, status: Boolean) {
         if (index >= sequencedParticles.size) return
         if (status) {
             createWithIndex(index)
@@ -330,6 +333,10 @@ abstract class SequencedParticleGroup(uuid: UUID) : ControlableParticleGroup(uui
             particles.remove(uuid)
             particlesLocations.remove(particle)
         }
+        val page = MathDataUtil.getStoragePageLong(index)
+        val container = displayedStatus[page]
+        val bit = MathDataUtil.getStorageWithBitLong(index)
+        MathDataUtil.setStatusLong(container, bit, status)
     }
 
 }

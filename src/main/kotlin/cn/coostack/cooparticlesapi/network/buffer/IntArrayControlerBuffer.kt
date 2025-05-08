@@ -1,8 +1,20 @@
 package cn.coostack.cooparticlesapi.network.buffer
 
+import cn.coostack.cooparticlesapi.CooParticleAPI
 import io.netty.buffer.Unpooled
+import net.minecraft.util.Identifier
 
 class IntArrayControlerBuffer : ParticleControlerDataBuffer<IntArray> {
+
+    companion object {
+        @JvmStatic
+        val id = ParticleControlerDataBuffer.Id(
+            Identifier.of(
+                CooParticleAPI.MOD_ID, "int_array"
+            )
+        )
+    }
+
     override var loadedValue: IntArray? = IntArray(0)
 
     override fun encode(): ByteArray? {
@@ -25,4 +37,9 @@ class IntArrayControlerBuffer : ParticleControlerDataBuffer<IntArray> {
         }
         return arr
     }
+
+    override fun getBufferID(): ParticleControlerDataBuffer.Id {
+        return id
+    }
+
 }

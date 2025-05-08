@@ -22,6 +22,11 @@ class BarrageOption {
     var acrossEmptyCollectionShape = true
 
     /**
+     * 是否忽略其他的弹幕 (shooter不相同的弹幕)
+     */
+    var barrageIgnored = true
+
+    /**
      * 是否可以穿过液体
      * 如果为false则遇到液体会触发onHit方法
      */

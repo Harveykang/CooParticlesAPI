@@ -1,5 +1,6 @@
 package cn.coostack.cooparticlesapi.barrages
 
+import cn.coostack.cooparticlesapi.network.particle.ServerControler
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroup
 import com.google.common.base.Predicate
 import net.minecraft.entity.LivingEntity
@@ -12,7 +13,7 @@ abstract class AbstractBarrage(
     override var loc: Vec3d,
     override val world: ServerWorld,
     override var hitBox: HitBox,
-    override val bindControl: ServerParticleGroup,
+    override val bindControl: ServerControler<*>,
     override val options: BarrageOption,
 ) : Barrage {
     override var shooter: LivingEntity? = null
@@ -29,6 +30,15 @@ abstract class AbstractBarrage(
      * 当获取到hitBox有实体时，可以对实体进行过滤
      */
     abstract fun filterHitEntity(livingEntity: LivingEntity): Boolean
+
+    /**
+     * 重写此方法用于自定义弹幕击中判定
+     * 如果重写
+     * 必须加上 barrage != this 否则会出现自己击中自己的bug
+     */
+    open fun filterHitBarrage(barrage: Barrage): Boolean {
+        return barrage.shooter != shooter && barrage != this
+    }
 
     override fun tick() {
         if (!lunch || !valid) {
@@ -47,7 +57,7 @@ abstract class AbstractBarrage(
             loc = loc.add(direction)
         }
 
-        bindControl.teleportGroupTo(loc)
+        bindControl.teleportTo(loc)
         // 判断击中
         if (options.maxLivingTick != -1) {
             if (currentTick++ > options.maxLivingTick) {
@@ -55,6 +65,7 @@ abstract class AbstractBarrage(
                 return
             }
         }
+        var hit = false
         val blockPos = BlockPos.ofFloored(loc)
         val block = world.getBlockState(blockPos)
         val result = BarrageHitResult()
@@ -63,11 +74,11 @@ abstract class AbstractBarrage(
             if (block.isLiquid) {
                 if (!options.acrossLiquid) {
                     result.hitBlockState = block
-                    hit(result)
+                    hit = true
                 }
             } else if (!options.acrossBlock && (!shape.isEmpty || !options.acrossEmptyCollectionShape)) {
                 result.hitBlockState = block
-                hit(result)
+                hit = true
             }
         }
 
@@ -80,6 +91,16 @@ abstract class AbstractBarrage(
         }
         if (collection.isNotEmpty()) {
             result.entities.addAll(collection)
+            hit = true
+        }
+        if (!options.barrageIgnored) {
+            val otherBarrages = BarrageManager.collectClipBarrages(world, hitBox.ofBox(loc))
+                .filter(::filterHitBarrage)
+            result.barrages.addAll(otherBarrages)
+            hit = true
+        }
+
+        if (hit) {
             hit(result)
         }
     }
@@ -89,17 +110,31 @@ abstract class AbstractBarrage(
      */
     fun hit(result: BarrageHitResult) {
         onHit(result)
-        if (options.acrossable) {
+        val timeoutHit = options.maxLivingTick <= currentTick && options.maxLivingTick != -1
+        if (options.acrossable && !timeoutHit) {
             if (options.maxAcrossCount == -1) return
             if (currentAcrossCount++ < options.maxAcrossCount) return
+        }
+        if (result.barrages.isNotEmpty()) {
+            result.barrages.forEach { barrage ->
+                // 防止出现自己调用自己
+                if (!barrage.options.barrageIgnored && barrage is AbstractBarrage && barrage != this) {
+                    barrage.hit(BarrageHitResult().also { it.barrages.add(this) })
+                }
+            }
         }
         remove()
     }
 
     fun remove() {
-        bindControl.kill()
+        bindControl.remove()
         isValid = false
     }
+
+    /**
+     * 没有碰撞体积
+     */
+    override fun noclip(): Boolean = spawnTick < options.noneHitBoxTick
 
     fun hitBoxEntities(): Set<LivingEntity> {
         val res = HashSet<LivingEntity>()

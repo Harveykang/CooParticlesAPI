@@ -8,4 +8,6 @@ class BarrageHitResult {
 
     val entities = ArrayList<LivingEntity>()
 
+    val barrages = ArrayList<Barrage>()
+
 }

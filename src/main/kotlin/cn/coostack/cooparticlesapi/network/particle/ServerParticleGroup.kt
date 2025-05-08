@@ -22,7 +22,7 @@ import java.util.UUID
  */
 abstract class ServerParticleGroup(
     var visibleRange: Double = 32.0
-) {
+) : ServerControler<ServerParticleGroup> {
     val uuid: UUID = UUID.randomUUID()
     var pos: Vec3d = Vec3d.ZERO
         internal set
@@ -216,10 +216,26 @@ abstract class ServerParticleGroup(
         )
     }
 
+    override fun getValue(): ServerParticleGroup {
+        return this
+    }
+
+    override fun remove() {
+        kill()
+    }
+
+    override fun teleportTo(to: Vec3d) {
+        teleportGroupTo(to)
+    }
+
+    override fun teleportTo(x: Double, y: Double, z: Double) {
+        teleportTo(Vec3d(x, y, z))
+    }
+
     /**
      * 出现了一些控制类之外的旋转
      */
-    fun rotateParticlesAsAxis(angle: Double) {
+    override fun rotateParticlesAsAxis(angle: Double) {
         change(
             {}, mapOf(
                 PacketParticleGroupS2C.PacketArgsType.ROTATE_AXIS.ofArgs to ParticleControlerDataBuffers.double(
@@ -229,9 +245,26 @@ abstract class ServerParticleGroup(
         )
     }
 
+    override fun rotateToWithAngle(to: RelativeLocation, angle: Double) {
+        change(
+            {}, mapOf(
+                PacketParticleGroupS2C.PacketArgsType.ROTATE_AXIS.ofArgs to ParticleControlerDataBuffers.double(
+                    angle
+                ),
+                PacketParticleGroupS2C.PacketArgsType.ROTATE_TO.ofArgs to ParticleControlerDataBuffers.vec3d(
+                    to.toVector()
+                )
+            )
+        )
+    }
+
     /**
      * 出现了一些控制类之外的旋转
      */
+    override fun rotateParticlesToPoint(to: RelativeLocation) {
+        rotateParticlesToPoint(to.toVector())
+    }
+
     fun rotateParticlesToPoint(to: Vec3d) {
         change(
             {}, mapOf(

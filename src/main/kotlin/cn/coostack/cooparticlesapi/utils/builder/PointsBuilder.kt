@@ -1,11 +1,14 @@
 package cn.coostack.cooparticlesapi.utils.builder
 
 import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
+import cn.coostack.cooparticlesapi.network.particle.style.SequencedParticleStyle
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
 import cn.coostack.cooparticlesapi.particles.control.group.SequencedParticleGroup
 import cn.coostack.cooparticlesapi.utils.Math3DUtil
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
+import java.util.SortedMap
 
 class PointsBuilder {
     companion object {
@@ -38,6 +41,7 @@ class PointsBuilder {
         return this
     }
 
+
     /**
      * 循环对每一个已经加入到builder的点进行同一个操作
      */
@@ -55,6 +59,25 @@ class PointsBuilder {
         handler(Math3DUtil)
     )
 
+
+    fun withBuilder(builder: PointsBuilder): PointsBuilder {
+        addPoints(builder.create())
+        return this
+    }
+
+    fun withBuilder(handler: (PointsBuilder) -> Unit): PointsBuilder {
+        val builder = PointsBuilder()
+        handler(builder)
+        addPoints(builder.create())
+        return this
+    }
+
+    fun withBuilderAxis(axis: RelativeLocation, handler: (PointsBuilder) -> Unit): PointsBuilder {
+        val builder = PointsBuilder.of(axis)
+        handler(builder)
+        addPoints(builder.create())
+        return this
+    }
 
     fun addDiscreteCircleXZ(r: Double, count: Int, discrete: Double): PointsBuilder = addWith {
         getDiscreteCircleXZ(r, count, discrete)
@@ -187,6 +210,17 @@ class PointsBuilder {
         )
     }
 
+    fun createWithSequencedStyleData(
+        dataBuilder: (relative: RelativeLocation, order: Int) -> SequencedParticleStyle.SortedStyleData
+    ): SortedMap<SequencedParticleStyle.SortedStyleData, RelativeLocation> {
+        var order = 0
+        return sortedMapOf(
+            *points.map {
+                dataBuilder(it, order++) to it
+            }.toTypedArray()
+        )
+    }
+
     fun createWithSequencedParticleEffects(
         dataBuilder: (relative: RelativeLocation) -> SequencedParticleGroup.SequencedParticleRelativeData
     ): Map<SequencedParticleGroup.SequencedParticleRelativeData, RelativeLocation> {
@@ -206,4 +240,9 @@ class PointsBuilder {
             }.toTypedArray()
         )
     }
+
+
+    fun createAsBlockPos(): Set<BlockPos> = points.asSequence().map {
+        BlockPos.ofFloored(it.toVector())
+    }.toMutableSet()
 }

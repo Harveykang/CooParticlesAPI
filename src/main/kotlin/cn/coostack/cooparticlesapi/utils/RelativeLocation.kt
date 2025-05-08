@@ -1,6 +1,7 @@
 package cn.coostack.cooparticlesapi.utils
 
 
+import io.netty.buffer.Unpooled
 import net.minecraft.util.math.Vec3d
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -26,6 +27,15 @@ data class RelativeLocation(var x: Double, var y: Double, var z: Double) {
         @JvmStatic
         fun toVector(relativeLocation: RelativeLocation): Vec3d {
             return Vec3d(relativeLocation.x, relativeLocation.y, relativeLocation.z)
+        }
+
+        @JvmStatic
+        fun fromBytes(bytes: ByteArray): RelativeLocation {
+            val buffer = Unpooled.wrappedBuffer(bytes)
+            val x = buffer.readDouble()
+            val y = buffer.readDouble()
+            val z = buffer.readDouble()
+            return RelativeLocation(x, y, z)
         }
 
         @JvmStatic
@@ -156,4 +166,13 @@ data class RelativeLocation(var x: Double, var y: Double, var z: Double) {
     }
 
     private fun doubleEquals(a: Double, b: Double): Boolean = a - b in -10e-6..10e-6
+
+    fun toBytes(): ByteArray {
+        val buffer = Unpooled.buffer(24)
+        buffer.writeDouble(x)
+        buffer.writeDouble(y)
+        buffer.writeDouble(z)
+        return buffer.copy().array()
+    }
+
 }

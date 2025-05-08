@@ -113,8 +113,7 @@ class CooScheduler {
             }
 
             if (loopTimer) {
-                val canInvoke = currentTick % singleDelay == 0
-                currentTick += singleDelay
+                val canInvoke = currentTick++ % singleDelay == 0
                 if (canInvoke) {
                     runnable(this)
                 }
@@ -122,6 +121,7 @@ class CooScheduler {
                     canceled = true
                     return
                 }
+                return
             }
 
             if (looped) {

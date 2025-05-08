@@ -1,16 +1,28 @@
 package cn.coostack.cooparticlesapi.test.particle.style.sub
 
+import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffer
+import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffers
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
-import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodEffect
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import cn.coostack.cooparticlesapi.utils.builder.PointsBuilder
 import java.util.UUID
 import kotlin.math.PI
 
-class MagicSubGroup(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGroup(uuid) {
-    override fun loadParticleLocations(): Map<ParticleRelativeData, RelativeLocation> {
+class MagicSubStyle(uuid: UUID, val bindPlayer: UUID, var rotateSpeed: Int) : ParticleGroupStyle(32.0, uuid) {
+
+    override fun onDisplay() {
+        addPreTickAction {
+            val player = world!!.getPlayerByUuid(bindPlayer) ?: return@addPreTickAction
+            val playerPos = player.pos
+            val to = pos.relativize(playerPos)
+            rotateToWithAngle(RelativeLocation.of(to), PI / 72 * rotateSpeed)
+        }
+    }
+
+    override fun getCurrentFrames(): Map<StyleData, RelativeLocation> {
         return PointsBuilder()
             .addCircle(4.0, 120)
             .pointsOnEach { it.y += 0.5 }
@@ -29,26 +41,27 @@ class MagicSubGroup(uuid: UUID, val bindPlayer: UUID) : ControlableParticleGroup
             .addLine(
                 RelativeLocation(), RelativeLocation.yAxis().multiplyClone(8.0), 40
             )
-            .createWithParticleEffects {
-                withEffect(
+            .createWithStyleData {
+                StyleData(
                     {
                         ParticleDisplayer.withSingle(
                             TestEndRodEffect(it)
                         )
                     }
-                ) {
+                ).withParticleHandler {
                     colorOfRGB(255, 190, 212)
                     maxAge = 120
                 }
             }
     }
 
-    override fun onGroupDisplay() {
-        addPreTickAction {
-            val player = world!!.getPlayerByUuid(bindPlayer) ?: return@addPreTickAction
-            val playerPos = player.pos
-            val to = origin.relativize(playerPos)
-            rotateToWithAngle(RelativeLocation.of(to), PI / 72)
-        }
+    override fun writePacketArgs(): Map<String, ParticleControlerDataBuffer<*>> {
+        return mapOf(
+            "rotate_speed" to ParticleControlerDataBuffers.int(rotateSpeed),
+        )
+    }
+
+    override fun readPacketArgs(args: Map<String, ParticleControlerDataBuffer<*>>) {
+        rotateSpeed = args["rotate_speed"] as Int
     }
 }

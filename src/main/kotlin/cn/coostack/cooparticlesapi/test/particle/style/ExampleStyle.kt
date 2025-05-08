@@ -6,10 +6,11 @@ import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
 import cn.coostack.cooparticlesapi.network.particle.style.ParticleStyleProvider
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
-import cn.coostack.cooparticlesapi.test.particle.style.sub.MagicSubGroup
+import cn.coostack.cooparticlesapi.test.particle.style.sub.MagicSubStyle
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import cn.coostack.cooparticlesapi.utils.builder.PointsBuilder
 import net.minecraft.client.particle.ParticleTextureSheet
+import net.minecraft.registry.tag.BiomeTags
 import java.util.UUID
 import kotlin.math.PI
 
@@ -57,8 +58,8 @@ class ExampleStyle(val bindPlayer: UUID, uuid: UUID = UUID.randomUUID()) :
                     .pointsOnEach { it.y += 6.0 }
                     .createWithStyleData {
                         StyleData {
-                            ParticleDisplayer.withGroup(
-                                MagicSubGroup(it, bindPlayer)
+                            ParticleDisplayer.withStyle(
+                                MagicSubStyle(it, bindPlayer, 1)
                             )
                         }
                     }
@@ -67,6 +68,14 @@ class ExampleStyle(val bindPlayer: UUID, uuid: UUID = UUID.randomUUID()) :
         return res
     }
 
+
+    fun changeStyles() {
+        particles.values.filter { it is MagicSubStyle }
+            .forEach {
+                it as MagicSubStyle
+                it.rotateSpeed = -10
+            }
+    }
 
     override fun onDisplay() {
         autoToggle = true
@@ -88,12 +97,20 @@ class ExampleStyle(val bindPlayer: UUID, uuid: UUID = UUID.randomUUID()) :
     }
 
     override fun writePacketArgs(): Map<String, ParticleControlerDataBuffer<*>> {
-        return mapOf(
+        val res = mutableMapOf<String, ParticleControlerDataBuffer<*>>(
             "current" to ParticleControlerDataBuffers.int(current),
             "angle_speed" to ParticleControlerDataBuffers.double(angleSpeed),
             "bind_player" to ParticleControlerDataBuffers.uuid(bindPlayer),
             "scaleTick" to ParticleControlerDataBuffers.int(scaleTick),
         )
+        particles.values.filter {
+            it is MagicSubStyle
+        }.forEach {
+            it as MagicSubStyle
+            val t = ParticleControlerDataBuffers.nested(it.writePacketArgs())
+            res[it.uuid.toString()] = t
+        }
+        return res
     }
 
     override fun readPacketArgs(args: Map<String, ParticleControlerDataBuffer<*>>) {
@@ -106,5 +123,14 @@ class ExampleStyle(val bindPlayer: UUID, uuid: UUID = UUID.randomUUID()) :
         if (args.containsKey("scaleTick")) {
             scaleTick = args["scaleTick"]!!.loadedValue as Int
         }
+
+        args.forEach { key, value ->
+            val uuid = runCatching { UUID.fromString(key) }.getOrNull() ?: return@forEach
+            val style = particles[uuid] ?: return@forEach
+            if (style is MagicSubStyle) {
+                style.readPacketArgs(value.loadedValue!! as Map<String, ParticleControlerDataBuffer<*>>)
+            }
+        }
+
     }
 }

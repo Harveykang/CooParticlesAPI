@@ -4,6 +4,7 @@ import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffer
 import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffers
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
+import cn.coostack.cooparticlesapi.network.particle.ServerControler
 import cn.coostack.cooparticlesapi.particles.Controlable
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
@@ -16,7 +17,6 @@ import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import java.util.UUID
@@ -31,7 +31,7 @@ import kotlin.math.PI
  * 于是创造出此类(当初为什么没有想到555)
  */
 abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUID = UUID.randomUUID()) :
-    Controlable<ParticleGroupStyle> {
+    Controlable<ParticleGroupStyle>, ServerControler<ParticleGroupStyle> {
     var world: World? = null
     var pos: Vec3d = Vec3d.ZERO
     var client = false
@@ -48,10 +48,10 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
      */
     var autoToggle = false
 
-    private var displayed = false
+    internal var displayed = false
     var valid = true
         internal set
-    private val invokeQueue = ArrayList<ParticleGroupStyle.() -> Unit>()
+    internal val invokeQueue = ArrayList<ParticleGroupStyle.() -> Unit>()
     val particles = ConcurrentHashMap<UUID, Controlable<*>>()
     val particleLocations = ConcurrentHashMap<Controlable<*>, RelativeLocation>()
 
@@ -190,7 +190,17 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         }
     }
 
+    /**
+     * Controler需求
+     */
     override fun getControlObject(): ParticleGroupStyle {
+        return this
+    }
+
+    /**
+     * ServerControler需求
+     */
+    override fun getValue(): ParticleGroupStyle {
         return this
     }
 
@@ -222,7 +232,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         change({}, args)
     }
 
-    fun display(pos: Vec3d, world: World) {
+    open fun display(pos: Vec3d, world: World) {
         if (displayed) {
             return
         }
@@ -239,14 +249,14 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         flush()
     }
 
-    fun flush() {
+    open fun flush() {
         if (particles.isNotEmpty()) {
             clear(true)
         }
         displayParticles()
     }
 
-    fun toggleRelative() {
+    open fun toggleRelative() {
         if (!client) {
             return
         }
@@ -262,7 +272,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
     }
 
 
-    fun tick() {
+    open fun tick() {
         if (!displayed || !valid) {
             clear(false)
             return
@@ -309,7 +319,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         }
     }
 
-    fun scale(new: Double) {
+    open fun scale(new: Double) {
         if (new < 0.0) {
             CooParticleAPI.logger.error("scale can not be less than zero")
             return
@@ -320,7 +330,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         }
     }
 
-    protected fun toggleScaleDisplayed() {
+    protected open fun toggleScaleDisplayed() {
         if (scale == 1.0) {
             return
         }
@@ -330,6 +340,26 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
             val value = it.value
             value.multiply(len * scale / value.length())
         }
+    }
+
+    open fun preRotateTo(map: Map<StyleData, RelativeLocation>, to: RelativeLocation) {
+        Math3DUtil.rotatePointsToPoint(
+            map.values.toList(), to, axis
+        )
+        this.axis = to
+    }
+
+    open fun preRotateAsAxis(map: Map<StyleData, RelativeLocation>, axis: RelativeLocation, angle: Double) {
+        Math3DUtil.rotateAsAxis(
+            map.values.toList(), axis, angle
+        )
+        this.axis = axis
+    }
+
+    open fun preRotateAsAxis(map: Map<StyleData, RelativeLocation>, angle: Double) {
+        Math3DUtil.rotateAsAxis(
+            map.values.toList(), axis, angle
+        )
     }
 
     private fun displayParticles() {
@@ -357,7 +387,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         }
     }
 
-    private fun clear(valid: Boolean) {
+    open internal fun clear(valid: Boolean) {
         particles.forEach {
             it.value.remove()
         }
@@ -367,7 +397,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         this.valid = valid
     }
 
-    class StyleData(
+    open class StyleData(
         val displayerBuilder: (UUID) -> ParticleDisplayer,
     ) {
         val uuid: UUID = UUID.randomUUID()

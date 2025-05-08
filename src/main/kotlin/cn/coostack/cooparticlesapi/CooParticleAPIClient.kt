@@ -18,6 +18,7 @@ import cn.coostack.cooparticlesapi.test.particle.client.BarrierSwordGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.ScaleCircleGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.SequencedMagicCircleClient
 import cn.coostack.cooparticlesapi.test.particle.client.TestGroupClient
+import cn.coostack.cooparticlesapi.test.particle.style.ExampleSequencedStyle
 import cn.coostack.cooparticlesapi.test.particle.style.ExampleStyle
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -60,7 +61,9 @@ object CooParticleAPIClient : ClientModInitializer {
         ClientParticleGroupManager.register(
             SequencedMagicCircleClient::class.java, SequencedMagicCircleClient.Provider()
         )
+
         ParticleStyleManager.register(ExampleStyle::class.java, ExampleStyle.Provider())
+        ParticleStyleManager.register(ExampleSequencedStyle::class.java, ExampleSequencedStyle.Provider())
         CooModParticles.reg()
     }
 

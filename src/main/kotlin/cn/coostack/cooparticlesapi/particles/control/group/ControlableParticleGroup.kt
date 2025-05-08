@@ -1,6 +1,9 @@
 package cn.coostack.cooparticlesapi.particles.control.group
 
 import cn.coostack.cooparticlesapi.CooParticleAPI
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle.StyleData
+import cn.coostack.cooparticlesapi.network.particle.style.ParticleShapeStyle
 import cn.coostack.cooparticlesapi.particles.Controlable
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
@@ -135,9 +138,14 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
             }
         }
         invokeQueue.forEach { it(this) }
-        particles.asSequence().filter { it.value is ControlableParticleGroup }.forEach {
-            (it.value.getControlObject() as ControlableParticleGroup).tick()
-        }
+        particles.asSequence().filter { it.value is ControlableParticleGroup || it.value is ParticleGroupStyle }
+            .forEach {
+                if (it.value is ParticleShapeStyle) {
+                    (it.value as ParticleShapeStyle).tick()
+                    return@forEach
+                }
+                (it.value as ControlableParticleGroup).tick()
+            }
     }
 
     internal open fun display(pos: Vec3d, world: ClientWorld) {
@@ -237,6 +245,30 @@ abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<Controlabl
     protected fun addPreTickAction(action: (ControlableParticleGroup) -> Unit): ControlableParticleGroup {
         invokeQueue.add(action)
         return this
+    }
+
+    fun preRotateTo(map: Map<ParticleRelativeData, RelativeLocation>, to: RelativeLocation) {
+        Math3DUtil.rotatePointsToPoint(
+            map.values.toList(), to, axis
+        )
+        this.axis = to
+    }
+
+    fun preRotateAsAxis(
+        map: Map<ParticleRelativeData, RelativeLocation>,
+        axis: RelativeLocation,
+        angle: Double
+    ) {
+        Math3DUtil.rotateAsAxis(
+            map.values.toList(), axis, angle
+        )
+        this.axis = axis
+    }
+
+    fun preRotateAsAxis(map: Map<ParticleRelativeData, RelativeLocation>, angle: Double) {
+        Math3DUtil.rotateAsAxis(
+            map.values.toList(), axis, angle
+        )
     }
 
     open protected fun toggleScaleDisplayed() {
