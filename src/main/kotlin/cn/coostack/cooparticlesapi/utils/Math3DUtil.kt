@@ -98,10 +98,7 @@ object Math3DUtil {
         require(edgeCount >= 1) { "edgeCount must be at least 1" }
 
         // 生成正n边形的顶点列表（xz平面，圆心在原点）
-        val vertices = List(n) { i ->
-            val theta = 2 * PI * i / n
-            Vec3d(r * cos(theta), 0.0, r * sin(theta))
-        }
+        val vertices = getPolygonInCircleVertices(n, r)
 
         val result = mutableListOf<RelativeLocation>()
 
@@ -118,11 +115,26 @@ object Math3DUtil {
             val step = if (edgeCount > 1) length / (edgeCount - 1) else 0.0
 
             // 生成当前边的点集
-            val lineLocations = getLineLocations(vi, direction, step, edgeCount)
+            val lineLocations = getLineLocations(vi.toVector(), direction, step, edgeCount)
             result.addAll(lineLocations)
         }
 
         return result
+    }
+
+    /**
+     * 生成以 r为半径的圆的 内接正n边形的每个顶点
+     * @param n 多边形的边数 必须大于等于3
+     * @param r 半径
+     */
+    fun getPolygonInCircleVertices(n: Int, r: Double): List<RelativeLocation> {
+        require(n >= 3) { "n must be at least 3" }
+        // 生成正n边形的顶点列表（xz平面，圆心在原点）
+        val vertices = List(n) { i ->
+            val theta = 2 * PI * i / n
+            RelativeLocation(r * cos(theta), 0.0, r * sin(theta))
+        }
+        return vertices
     }
 
     /**
@@ -586,6 +598,64 @@ object Math3DUtil {
             )
         }
         return res
+    }
+
+    /**
+     * 生成爆炸曲线点
+     * @param power 爆炸威力
+     * @param maxHeight 爆炸点的最高高度
+     * @param handleRadius 处理爆炸的最大范围
+     * @param step 处理圆环的步长
+     * @param minCircleCount 圆环的最小点个数
+     * @param maxCircleCount 圆环的最大点个数
+     */
+    fun generateExplosionCurve(
+        power: Double,
+        maxHeight: Double,
+        handleRadius: Double,
+        step: Double = 1.0,
+        minCircleCount: Int = 8,
+        maxCircleCount: Int = 24
+    ): List<RelativeLocation> {
+        // 参数有效性校验
+        if (handleRadius <= 0 || maxHeight <= 0 || step <= 0) return emptyList()
+        if (minCircleCount <= 0 || maxCircleCount < minCircleCount) return emptyList()
+
+        val points = mutableListOf<RelativeLocation>().apply {
+            // 添加爆炸中心点
+            add(RelativeLocation(0.0, maxHeight, 0.0))
+        }
+
+        val maxRadius = handleRadius.coerceAtLeast(step)
+        val totalCircles = (maxRadius / step).toInt()
+
+        // 计算粒子数增量步长
+        val countStep = if (totalCircles > 0) {
+            (maxCircleCount - minCircleCount).toDouble() / totalCircles
+        } else 0.0
+
+        var currentRadius = step
+        repeat(totalCircles) { circleIndex ->
+            // 计算当前圆环粒子数量
+            val particleCount = minCircleCount + (countStep * circleIndex).toInt()
+
+            // 环形坐标生成
+            val angleStep = 2 * Math.PI / particleCount
+            repeat(particleCount) { particleIndex ->
+                val angle = angleStep * particleIndex
+                val x = currentRadius * cos(angle)
+                val z = currentRadius * sin(angle)
+
+                // 计算破坏强度
+                val normalized = currentRadius / handleRadius
+                val intensity = maxHeight * (1 - normalized).pow(power)
+
+                points.add(RelativeLocation(x, intensity, z))
+            }
+            currentRadius += step
+        }
+
+        return points
     }
 
     /**

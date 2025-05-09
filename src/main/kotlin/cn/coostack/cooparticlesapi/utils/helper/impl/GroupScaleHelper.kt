@@ -1,7 +1,8 @@
-package cn.coostack.cooparticlesapi.utils.helper
+package cn.coostack.cooparticlesapi.utils.helper.impl
 
 import cn.coostack.cooparticlesapi.particles.Controlable
 import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
+import cn.coostack.cooparticlesapi.utils.helper.ScaleHelper
 
 /**
  * 从最小scale 到 最大scale

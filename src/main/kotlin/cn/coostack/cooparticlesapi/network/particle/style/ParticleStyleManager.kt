@@ -6,6 +6,7 @@ import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
 import cn.coostack.cooparticlesapi.particles.control.ControlType
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.text.Text
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import java.util.HashSet
@@ -53,7 +54,7 @@ object ParticleStyleManager {
         style.display(pos, world)
         serverViewStyles[style.uuid] = style
         // 发送数据包 -> 包括type
-        world.players.forEach {
+        world.players.filter { style.pos.distanceTo(it.pos) <= style.visibleRange }.forEach {
             addStylePlayerView(it as ServerPlayerEntity, style)
         }
     }
@@ -91,7 +92,21 @@ object ParticleStyleManager {
                 }
             }
             if (!style.valid) {
+                filterVisiblePlayer(style).forEach {
+                    val player = style.world!!.getPlayerByUuid(it) ?: return@forEach
+                    removeGroupPlayerView(player as ServerPlayerEntity, style)
+                    visible[it]?.remove(style)
+                }
                 iterator.remove()
+            }
+        }
+        val playerVisibleIterator = visible.iterator()
+        while (playerVisibleIterator.hasNext()) {
+            val playerUUID = playerVisibleIterator.next().key
+            // 判断玩家是否在线
+            val player = CooParticleAPI.server.playerManager.getPlayer(playerUUID)
+            if (player == null) {
+                playerVisibleIterator.remove()
             }
         }
     }

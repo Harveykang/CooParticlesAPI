@@ -104,9 +104,17 @@ class PointsBuilder {
         )
     )
 
+    fun addBuilder(origin: RelativeLocation, builder: PointsBuilder): PointsBuilder {
+        points.addAll(builder.create().onEach { it.add(origin) })
+        return this
+    }
 
     fun addPolygonInCircle(n: Int, edgeCount: Int, r: Double): PointsBuilder = addPoints(
         Math3DUtil.getPolygonInCircleLocations(n, edgeCount, r)
+    )
+
+    fun addPolygonInCircleVertices(n: Int, edgeCount: Int, r: Double): PointsBuilder = addPoints(
+        Math3DUtil.getPolygonInCircleVertices(n, r)
     )
 
 
@@ -198,7 +206,7 @@ class PointsBuilder {
         return this
     }
 
-    fun create(): List<RelativeLocation> = points
+    fun create(): List<RelativeLocation> = points.asSequence().map { it.clone() }.toList()
 
     fun createWithParticleEffects(
         dataBuilder: (relative: RelativeLocation) -> ControlableParticleGroup.ParticleRelativeData
@@ -241,8 +249,11 @@ class PointsBuilder {
         )
     }
 
-
     fun createAsBlockPos(): Set<BlockPos> = points.asSequence().map {
         BlockPos.ofFloored(it.toVector())
     }.toMutableSet()
+
+    fun cloneBuilder(): PointsBuilder {
+        return of(axis, create())
+    }
 }

@@ -1,8 +1,8 @@
-package cn.coostack.cooparticlesapi.utils.helper
+package cn.coostack.cooparticlesapi.utils.helper.impl
 
 import cn.coostack.cooparticlesapi.network.particle.style.ParticleGroupStyle
 import cn.coostack.cooparticlesapi.particles.Controlable
-import cn.coostack.cooparticlesapi.particles.control.group.ControlableParticleGroup
+import cn.coostack.cooparticlesapi.utils.helper.ScaleHelper
 
 class StyleScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int) :
     ScaleHelper(minScale, maxScale, scaleTick) {

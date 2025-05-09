@@ -4,7 +4,7 @@ import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffer
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import cn.coostack.cooparticlesapi.utils.builder.PointsBuilder
-import cn.coostack.cooparticlesapi.utils.helper.StyleScaleHelper
+import cn.coostack.cooparticlesapi.utils.helper.impl.StyleScaleHelper
 import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.math.Vec3d

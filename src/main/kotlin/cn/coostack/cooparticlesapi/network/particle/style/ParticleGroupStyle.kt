@@ -180,7 +180,8 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         if (!client) {
             // 同步到其他客户端
             ParticleStyleManager.filterVisiblePlayer(this).forEach {
-                val player = world!!.getPlayerByUuid(it) as ServerPlayerEntity
+                val player = world!!.getPlayerByUuid(it) as? ServerPlayerEntity
+                player ?: return@forEach
                 ServerPlayNetworking.send(
                     player, PacketParticleStyleS2C(
                         uuid, ControlType.REMOVE, mapOf()
@@ -331,7 +332,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
             val uuid = it.key.controlUUID()
             val len = particleDefaultLength[uuid]!!
             val value = it.value
-            if (len in -1e-3 .. 1e-3) return@forEach
+            if (len in -1e-3..1e-3) return@forEach
             value.multiply(len * scale / value.length())
         }
     }
