@@ -9,6 +9,7 @@ import java.util.UUID
 object ParticleControlerDataBuffers {
 
     val registerBuilder = HashMap<ParticleControlerDataBuffer.Id, Class<out ParticleControlerDataBuffer<*>>>()
+    val registerTypes = HashMap<Class<*>, ParticleControlerDataBuffer.Id>()
 
     fun boolean(value: Boolean): BooleanControlerBuffer = BooleanControlerBuffer().apply { loadedValue = (value) }
     fun char(value: Char): CharControlerBuffer = CharControlerBuffer().apply { loadedValue = (value) }
@@ -44,6 +45,11 @@ object ParticleControlerDataBuffers {
         return bufferCodec
     }
 
+    fun fromBufferType(value: Any, clazz: Class<*>): ParticleControlerDataBuffer<*>? {
+        val id = registerTypes[clazz]!!
+        return withId(id, value)
+    }
+
     fun withDecode(buf: ByteArray, clazz: Class<out ParticleControlerDataBuffer<*>>): ParticleControlerDataBuffer<*> {
         val bufferCodec = clazz.getConstructor().newInstance() as ParticleControlerDataBuffer<Any>
         bufferCodec.loadedValue = bufferCodec.decode(buf)
@@ -73,8 +79,14 @@ object ParticleControlerDataBuffers {
         return withDecode(array, clazz)
     }
 
-    fun register(id: ParticleControlerDataBuffer.Id, type: Class<out ParticleControlerDataBuffer<*>>) {
+
+    fun register(
+        bufType: Class<*>,
+        id: ParticleControlerDataBuffer.Id,
+        type: Class<out ParticleControlerDataBuffer<*>>
+    ) {
         registerBuilder[id] = type
+        registerTypes[bufType] = id
     }
 
     fun <T> encode(buffer: ParticleControlerDataBuffer<T>): ByteArray {
@@ -131,20 +143,20 @@ object ParticleControlerDataBuffers {
 
 
     init {
-        register(BooleanControlerBuffer.id, BooleanControlerBuffer::class.java)
-        register(LongControlerBuffer.id, LongControlerBuffer::class.java)
-        register(IntControlerBuffer.id, IntControlerBuffer::class.java)
-        register(DoubleControlerBuffer.id, DoubleControlerBuffer::class.java)
-        register(FloatControlerBuffer.id, FloatControlerBuffer::class.java)
-        register(StringControlerBuffer.id, StringControlerBuffer::class.java)
-        register(IntArrayControlerBuffer.id, IntArrayControlerBuffer::class.java)
-        register(LongArrayControlerBuffer.id, LongArrayControlerBuffer::class.java)
-        register(UUIDControlerBuffer.id, UUIDControlerBuffer::class.java)
-        register(Vec3dControlerBuffer.id, Vec3dControlerBuffer::class.java)
-        register(ShortControlerBuffer.id, ShortControlerBuffer::class.java)
-        register(EmptyControlerBuffer.id, EmptyControlerBuffer::class.java)
-        register(CharControlerBuffer.id, CharControlerBuffer::class.java)
-        register(NestedBuffersControlerBuffer.id, NestedBuffersControlerBuffer::class.java)
+        register(Boolean::class.java, BooleanControlerBuffer.id, BooleanControlerBuffer::class.java)
+        register(Long::class.java, LongControlerBuffer.id, LongControlerBuffer::class.java)
+        register(Int::class.java, IntControlerBuffer.id, IntControlerBuffer::class.java)
+        register(Double::class.java, DoubleControlerBuffer.id, DoubleControlerBuffer::class.java)
+        register(Float::class.java, FloatControlerBuffer.id, FloatControlerBuffer::class.java)
+        register(String::class.java, StringControlerBuffer.id, StringControlerBuffer::class.java)
+        register(IntArray::class.java, IntArrayControlerBuffer.id, IntArrayControlerBuffer::class.java)
+        register(LongArray::class.java, LongArrayControlerBuffer.id, LongArrayControlerBuffer::class.java)
+        register(UUID::class.java, UUIDControlerBuffer.id, UUIDControlerBuffer::class.java)
+        register(Vec3d::class.java, Vec3dControlerBuffer.id, Vec3dControlerBuffer::class.java)
+        register(Short::class.java, ShortControlerBuffer.id, ShortControlerBuffer::class.java)
+        register(Unit::class.java, EmptyControlerBuffer.id, EmptyControlerBuffer::class.java)
+        register(Char::class.java, CharControlerBuffer.id, CharControlerBuffer::class.java)
+        register(Map::class.java, NestedBuffersControlerBuffer.id, NestedBuffersControlerBuffer::class.java)
     }
 
 }

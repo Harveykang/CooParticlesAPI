@@ -45,8 +45,22 @@ object ClientParticleStylePacketHandler : ClientPlayNetworking.PlayPayloadHandle
             val pos = args["pos"]!!.loadedValue as Vec3d
             style.teleportTo(pos)
         }
-        if (args.containsKey("rotate")) {
-            style.rotate = args["rotate"]!!.loadedValue as Double
+        if (args.containsKey("teleport")) {
+            val pos = args["teleport"]!!.loadedValue as Vec3d
+            style.teleportTo(pos)
+        }
+        if (args.containsKey("rotate_to") && args.containsKey("rotate_angle")) {
+            style.rotateToWithAngle(
+                args["rotate_to"]!!.loadedValue as RelativeLocation,
+                args["rotate_angle"]!!.loadedValue as Double
+            )
+        } else {
+            if (args.containsKey("rotate_angle")) {
+                style.rotateParticlesAsAxis(args["rotate_angle"]!!.loadedValue as Double)
+            }
+            if (args.containsKey("rotate_to")) {
+                style.rotateParticlesToPoint(args["rotate_to"]!!.loadedValue as RelativeLocation)
+            }
         }
         if (args.containsKey("axis")) {
             style.axis = RelativeLocation.of(args["axis"]!!.loadedValue as Vec3d)

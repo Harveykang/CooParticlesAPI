@@ -38,12 +38,12 @@ import kotlin.collections.iterator
 @Environment(EnvType.CLIENT)
 abstract class ControlableParticleGroup(val uuid: UUID) : Controlable<ControlableParticleGroup> {
     // 实际存在于客户端的粒子
-    protected val particles = ConcurrentHashMap<UUID, Controlable<*>>()
+    val particles = ConcurrentHashMap<UUID, Controlable<*>>()
 
     // 实际显示的粒子相对位置关系
-    protected val particlesLocations = ConcurrentHashMap<Controlable<*>, RelativeLocation>()
+    val particlesLocations = ConcurrentHashMap<Controlable<*>, RelativeLocation>()
 
-    protected val particlesDefaultScaleLengths = ConcurrentHashMap<UUID, Double>()
+    val particlesDefaultScaleLengths = ConcurrentHashMap<UUID, Double>()
 
     // 每个tick执行的调用队列
     internal val invokeQueue = mutableListOf<(ControlableParticleGroup) -> Unit>()

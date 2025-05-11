@@ -13,6 +13,9 @@ import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
 import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudParticle
 import cn.coostack.cooparticlesapi.particles.impl.ControlableEnchantmentEffect
 import cn.coostack.cooparticlesapi.particles.impl.ControlableEnchantmentParticle
+import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkEffect
+import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkParticle
+import cn.coostack.cooparticlesapi.particles.impl.ControlableFlashParticle
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodParticle
 import cn.coostack.cooparticlesapi.test.particle.client.BarrierSwordGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.ScaleCircleGroupClient
@@ -48,6 +51,14 @@ object CooParticleAPIClient : ClientModInitializer {
         ParticleFactoryRegistry.getInstance()
             .register(CooModParticles.controlableCloud, ParticleFactoryRegistry.PendingParticleFactory {
                 return@PendingParticleFactory ControlableCloudParticle.Factory(it)
+            })
+        ParticleFactoryRegistry.getInstance()
+            .register(CooModParticles.controlableFlash, ParticleFactoryRegistry.PendingParticleFactory {
+                return@PendingParticleFactory ControlableFlashParticle.Factory(it)
+            })
+        ParticleFactoryRegistry.getInstance()
+            .register(CooModParticles.controlableFirework, ParticleFactoryRegistry.PendingParticleFactory {
+                return@PendingParticleFactory ControlableFireworkParticle.Factory(it)
             })
         ClientParticleGroupManager.register(
             TestGroupClient::class.java, TestGroupClient.Provider()

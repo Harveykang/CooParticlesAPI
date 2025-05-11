@@ -269,9 +269,8 @@ abstract class ControlableParticle(
             this.pos = lastPreview
             update = false
         }
-
-//        ParticleTypes.ENCHANTED_HIT
     }
+
 
     override fun getType(): ParticleTextureSheet? {
         return textureSheet

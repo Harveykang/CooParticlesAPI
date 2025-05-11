@@ -113,7 +113,7 @@ class PointsBuilder {
         Math3DUtil.getPolygonInCircleLocations(n, edgeCount, r)
     )
 
-    fun addPolygonInCircleVertices(n: Int, edgeCount: Int, r: Double): PointsBuilder = addPoints(
+    fun addPolygonInCircleVertices(n: Int, r: Double): PointsBuilder = addPoints(
         Math3DUtil.getPolygonInCircleVertices(n, r)
     )
 
@@ -212,7 +212,7 @@ class PointsBuilder {
         dataBuilder: (relative: RelativeLocation) -> ControlableParticleGroup.ParticleRelativeData
     ): Map<ControlableParticleGroup.ParticleRelativeData, RelativeLocation> {
         return mapOf(
-            *points.map {
+            *create().map {
                 dataBuilder(it) to it
             }.toTypedArray()
         )
@@ -223,7 +223,7 @@ class PointsBuilder {
     ): SortedMap<SequencedParticleStyle.SortedStyleData, RelativeLocation> {
         var order = 0
         return sortedMapOf(
-            *points.map {
+            *create().map {
                 dataBuilder(it, order++) to it
             }.toTypedArray()
         )
@@ -233,7 +233,7 @@ class PointsBuilder {
         dataBuilder: (relative: RelativeLocation) -> SequencedParticleGroup.SequencedParticleRelativeData
     ): Map<SequencedParticleGroup.SequencedParticleRelativeData, RelativeLocation> {
         return mapOf(
-            *points.map {
+            *create().map {
                 dataBuilder(it) to it
             }.toTypedArray()
         )
@@ -243,7 +243,7 @@ class PointsBuilder {
         dataBuilder: (relative: RelativeLocation) -> ParticleGroupStyle.StyleData
     ): Map<ParticleGroupStyle.StyleData, RelativeLocation> {
         return mapOf(
-            *points.map {
+            *create().map {
                 dataBuilder(it) to it
             }.toTypedArray()
         )

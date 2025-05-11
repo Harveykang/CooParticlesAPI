@@ -109,7 +109,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
             // 同步到其他客户端
             change(
                 mapOf(
-                    "rotate_to" to ParticleControlerDataBuffers.vec3d(to.toVector())
+                    "rotate_to" to ParticleControlerDataBuffers.relative(to)
                 )
             )
         }
@@ -132,7 +132,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
             // 同步到其他客户端
             change(
                 mapOf(
-                    "rotate_to" to ParticleControlerDataBuffers.vec3d(to.toVector()),
+                    "rotate_to" to ParticleControlerDataBuffers.relative(to),
                     "rotate_angle" to ParticleControlerDataBuffers.double(angle)
                 )
             )
@@ -324,6 +324,9 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         scale = new
         if (displayed) {
             toggleScaleDisplayed()
+        }
+        if (!client) {
+            change(mapOf("scale" to ParticleControlerDataBuffers.double(new)))
         }
     }
 

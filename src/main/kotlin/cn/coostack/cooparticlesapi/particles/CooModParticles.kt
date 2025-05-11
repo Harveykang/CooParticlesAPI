@@ -3,6 +3,8 @@ package cn.coostack.cooparticlesapi.particles
 import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
 import cn.coostack.cooparticlesapi.particles.impl.ControlableEnchantmentEffect
+import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkEffect
+import cn.coostack.cooparticlesapi.particles.impl.ControlableFlashEffect
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodEffect
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
@@ -56,6 +58,13 @@ object CooModParticles {
         "controlable_cloud", false, { ControlableCloudEffect.codec }, { ControlableCloudEffect.packetCode }
     )
 
+    val controlableFlash: ParticleType<ControlableFlashEffect> = register(
+        "controlable_flash", false, { ControlableFlashEffect.codec }, { ControlableFlashEffect.packetCode }
+    )
+
+    val controlableFirework: ParticleType<ControlableFireworkEffect> = register(
+        "controlable_firework", false, { ControlableFireworkEffect.codec }, { ControlableFireworkEffect.packetCode }
+    )
 
     fun <T : ParticleEffect?> register(
         id: String, alwaysShow: Boolean,
