@@ -1,7 +1,13 @@
 package cn.coostack.cooparticlesapi.particles
 
+import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
+import com.mojang.serialization.Codec
+import com.mojang.serialization.MapCodec
+import com.mojang.serialization.codecs.RecordCodecBuilder
+import io.netty.buffer.Unpooled
 import net.minecraft.particle.ParticleEffect
 import java.util.UUID
 
-abstract class ControlableParticleEffect(val controlUUID: UUID) : ParticleEffect {
+abstract class ControlableParticleEffect(val controlUUID: UUID, val faceToPlayer: Boolean = true) : ParticleEffect {
+
 }

@@ -24,7 +24,7 @@ open class ParticleShapeStyle(uuid: UUID) :
     val scaleHelper = StyleScaleHelper(1.0, 1.0, 1)
     private var onDisplayInvoke: ParticleShapeStyle.() -> Unit = {}
     private var beforeDisplayInvoke: ParticleShapeStyle.(Map<StyleData, RelativeLocation>) -> Unit = {}
-    private val pointBuilders = LinkedHashMap<PointsBuilder, () -> StyleData>()
+    private val pointBuilders = LinkedHashMap<PointsBuilder, (RelativeLocation) -> StyleData>()
 
     /**
      * 设置为true时 会利用scaleHelper 每tick增长一点
@@ -38,8 +38,15 @@ open class ParticleShapeStyle(uuid: UUID) :
     var scaleReversed = false
         private set
 
-    fun appendBuilder(pointsBuilder: PointsBuilder, dataBuilder: () -> StyleData): ParticleShapeStyle {
+    fun appendBuilder(pointsBuilder: PointsBuilder, dataBuilder: (RelativeLocation) -> StyleData): ParticleShapeStyle {
         pointBuilders[pointsBuilder] = dataBuilder
+        return this
+    }
+
+    fun appendPoint(point: RelativeLocation, dataBuilder: (RelativeLocation) -> StyleData): ParticleShapeStyle {
+        pointBuilders[
+            PointsBuilder().also { it.addPoint(point) }
+        ] = dataBuilder
         return this
     }
 
@@ -87,7 +94,7 @@ open class ParticleShapeStyle(uuid: UUID) :
     override fun getCurrentFrames(): Map<StyleData, RelativeLocation> {
         val res = HashMap<StyleData, RelativeLocation>()
         pointBuilders.forEach { entry ->
-            res.putAll(entry.key.createWithStyleData { entry.value() })
+            res.putAll(entry.key.createWithStyleData { entry.value(it) })
         }
         return res
     }

@@ -1,6 +1,9 @@
 package cn.coostack.cooparticlesapi.utils
 
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.util.math.Vec3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.ArrayList
 import kotlin.math.*
@@ -310,14 +313,7 @@ object Math3DUtil {
      * @param angle 角度 输入时使用弧度制的角度
      */
     fun rotateVector(point: RelativeLocation, axis: RelativeLocation, angle: Double): RelativeLocation {
-        val sinAngle = sin(angle / 2)
-        val cosAngle = cos(angle / 2)
-        val rotationAxis = axis.normalize() * sinAngle
-        val rotationQuaternion = Quaternion(cosAngle, rotationAxis.x, rotationAxis.y, rotationAxis.z)
-        val conjugateQuaternion = rotationQuaternion.conjugate()
-        val vectorQuaternion = Quaternion(0.0, point.x, point.y, point.z)
-        val rotatedVectorQuaternion = rotationQuaternion * vectorQuaternion * conjugateQuaternion
-        return RelativeLocation(rotatedVectorQuaternion.x, rotatedVectorQuaternion.y, rotatedVectorQuaternion.z)
+        return RotationMatrix.fromAxisAngle(axis, angle).applyToClone(point)
     }
 
 
@@ -327,12 +323,7 @@ object Math3DUtil {
      */
     fun rotateAsAxis(locList: List<RelativeLocation>, axis: RelativeLocation, angle: Double): List<RelativeLocation> {
         for (loc in locList) {
-            val rotatePoint = rotateVector(loc, axis, angle)
-            loc.also {
-                it.x = rotatePoint.x
-                it.y = rotatePoint.y
-                it.z = rotatePoint.z
-            }
+            RotationMatrix.fromAxisAngle(axis, angle).applyTo(loc)
         }
         return locList
     }
@@ -404,13 +395,10 @@ object Math3DUtil {
         return atan2(loc.z, loc.x)
     }
 
-    // 这不纯傻逼
-    // 不就求线面角吗 ???
-    fun getPitchFromLocation(loc: Vec3d): Double {
-        // 可以用when代替 但是懒得换了:(
-        if (loc.y == 0.0 && loc.x == 0.0 && loc.z == 0.0) return 0.0
-        val sq = sqrt(loc.x.pow(2) + loc.z.pow(2))
-        return atan2(loc.y, sq * getAxisSymbol(loc))
+    fun getPitchFromLocation(v: Vec3d): Double {
+        val length = v.length()
+        if (length == 0.0) return 0.0
+        return asin(v.y / length)
     }
 
     fun getPitchFromRelativeLocation(vec: RelativeLocation): Double {
@@ -602,6 +590,70 @@ object Math3DUtil {
     }
 
     /**
+     * 生成三次贝塞尔曲线 (二维)
+     */
+    fun generateBezierCurve(
+        target: RelativeLocation,
+        startHandle: RelativeLocation,
+        endHandle: RelativeLocation,
+        count: Int
+    ): List<RelativeLocation> {
+        require(count >= 1) { "Number of points must be at least 1" }
+
+        return List(count) { i ->
+            val t = when (count) {
+                1 -> 1.0
+                else -> i.toDouble() / (count - 1)
+            }
+
+            val u = 1 - t
+            val u2 = u * u
+            val t2 = t * t
+
+            // 三次贝塞尔曲线公式
+            val x = (u2 * u * 0.0) +          // P0 (0,0)
+                    (3 * u2 * t * startHandle.x) +  // P1 control point
+                    (3 * u * t2 * endHandle.x) +    // P2 control point
+                    (t2 * t * target.x)           // P3 (end point)
+
+            val y = (u2 * u * 0.0) +
+                    (3 * u2 * t * startHandle.y) +
+                    (3 * u * t2 * endHandle.y) +
+                    (t2 * t * target.y)
+
+            RelativeLocation(x, y, 0.0)
+        }
+    }
+
+    fun cubicBezier(t: Double, p0: Double, p1: Double, p2: Double, p3: Double): Double {
+        val u = 1 - t
+        val u2 = u * u
+        val t2 = t * t
+        return u2 * u * p0 +
+                3 * u2 * t * p1 +
+                3 * u * t2 * p2 +
+                t2 * t * p3
+    }
+
+    fun calculateEulerAnglesToPoint(target: Vector3f): Triple<Float, Float, Float> {
+        // 处理零向量特例
+        if (target.x == 0f && target.y == 0f && target.z == 0f) {
+            return Triple(0f, 0f, 0f)
+        }
+
+        // 计算俯仰角（Pitch，绕 X 轴）
+        val pitch = atan2(target.y, sqrt(target.x * target.x + target.z * target.z))
+
+        // 计算偏航角（Yaw，绕 Y 轴）
+        val yaw = -atan2(target.z, target.x)
+
+        // 绕 Z 轴的滚动角（Roll）默认为 0，因为纯指向不需要 Z 轴旋转
+        val roll = 0f
+
+        return Triple(pitch, yaw, roll)
+    }
+
+    /**
      * 生成爆炸曲线点
      * @param power 爆炸威力
      * @param maxHeight 爆炸点的最高高度
@@ -689,23 +741,6 @@ object Math3DUtil {
         } else {
             4
         }
-    }
-
-    private class Quaternion(var w: Double, var x: Double, var y: Double, var z: Double) {
-        fun conjugate(): Quaternion = Quaternion(w, -x, -y, -z)
-        operator fun times(that: Float): Quaternion = Quaternion(
-            this.w * that,
-            this.x * that,
-            this.y * that,
-            this.z * that
-        )
-
-        operator fun times(that: Quaternion): Quaternion = Quaternion(
-            this.w * that.w - this.x * that.x - this.y * that.y - this.z * that.z,
-            this.x * that.w + this.w * that.x - this.z * that.y + this.y * that.z,
-            this.y * that.w + this.z * that.x + this.w * that.y - this.x * that.z,
-            this.z * that.w - this.y * that.x + this.x * that.y + this.w * that.z
-        )
     }
 
 

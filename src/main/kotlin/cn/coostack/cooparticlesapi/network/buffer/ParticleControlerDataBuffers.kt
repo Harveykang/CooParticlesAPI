@@ -7,7 +7,16 @@ import net.minecraft.util.math.Vec3d
 import java.util.UUID
 
 object ParticleControlerDataBuffers {
-
+    private val wrapperToPrimitive = mapOf<Class<*>, Class<*>>(
+        java.lang.Integer::class.java to Int::class.java,
+        java.lang.Double::class.java to Double::class.java,
+        java.lang.Long::class.java to Long::class.java,
+        java.lang.Float::class.java to Float::class.java,
+        java.lang.Boolean::class.java to Boolean::class.java,
+        java.lang.Character::class.java to Char::class.java,
+        java.lang.Byte::class.java to Byte::class.java,
+        java.lang.Short::class.java to Short::class.java
+    )
     val registerBuilder = HashMap<ParticleControlerDataBuffer.Id, Class<out ParticleControlerDataBuffer<*>>>()
     val registerTypes = HashMap<Class<*>, ParticleControlerDataBuffer.Id>()
 
@@ -46,8 +55,11 @@ object ParticleControlerDataBuffers {
     }
 
     fun fromBufferType(value: Any, clazz: Class<*>): ParticleControlerDataBuffer<*>? {
-        val id = registerTypes[clazz]!!
-        return withId(id, value)
+        val targetClass = registerTypes[clazz]?.let { clazz }
+            ?: wrapperToPrimitive[clazz]?.takeIf { registerTypes.containsKey(it) }
+            ?: return null
+
+        return registerTypes[targetClass]?.let { withId(it, value) }
     }
 
     fun withDecode(buf: ByteArray, clazz: Class<out ParticleControlerDataBuffer<*>>): ParticleControlerDataBuffer<*> {
@@ -145,7 +157,7 @@ object ParticleControlerDataBuffers {
     init {
         register(Boolean::class.java, BooleanControlerBuffer.id, BooleanControlerBuffer::class.java)
         register(Long::class.java, LongControlerBuffer.id, LongControlerBuffer::class.java)
-        register(Int::class.java, IntControlerBuffer.id, IntControlerBuffer::class.java)
+        register(Integer::class.java, IntControlerBuffer.id, IntControlerBuffer::class.java)
         register(Double::class.java, DoubleControlerBuffer.id, DoubleControlerBuffer::class.java)
         register(Float::class.java, FloatControlerBuffer.id, FloatControlerBuffer::class.java)
         register(String::class.java, StringControlerBuffer.id, StringControlerBuffer::class.java)

@@ -17,7 +17,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         minScale = temp
     }
 
-    fun recalculateStep(): ScaleHelper {
+    open fun recalculateStep(): ScaleHelper {
         val temp = min(minScale, maxScale)
         maxScale = max(minScale, maxScale)
         minScale = temp
@@ -25,7 +25,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         return this
     }
 
-    fun toggleScale(scale: Double) {
+    open fun toggleScale(scale: Double) {
         if (scale <= minScale) {
             resetScaleMin()
             return
@@ -57,7 +57,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         scale(maxScale)
     }
 
-    fun doScaleTo(current: Int) {
+    open fun doScaleTo(current: Int) {
         if (getLoadedGroup() == null) {
             return
         }
@@ -74,7 +74,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         scale(minScale + step * enter)
     }
 
-    fun doScale() {
+    open fun doScale() {
         if (getLoadedGroup() == null) {
             return
         }
@@ -85,7 +85,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         scale(getGroupScale() + step)
     }
 
-    fun doScaleReversed() {
+    open fun doScaleReversed() {
         if (getLoadedGroup() == null) {
             return
         }

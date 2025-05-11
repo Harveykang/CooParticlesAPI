@@ -3,31 +3,39 @@ package cn.coostack.cooparticlesapi.particles
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
 import cn.coostack.cooparticlesapi.particles.control.ParticleControler
 import cn.coostack.cooparticlesapi.utils.Math3DUtil
-import com.mojang.blaze3d.platform.GlStateManager
-import com.mojang.blaze3d.systems.RenderSystem
+import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.particle.Particle
 import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.client.particle.SpriteBillboardParticle
 import net.minecraft.client.render.Camera
 import net.minecraft.client.render.LightmapTextureManager
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.world.ClientWorld
-import net.minecraft.particle.ParticleTypes
 import net.minecraft.util.math.Box
+import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.random.Random
+import org.joml.Matrix4f
+import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4f
+import org.lwjgl.opengl.GL11
 import java.util.*
+import kotlin.math.PI
+
 
 @Environment(EnvType.CLIENT)
 abstract class ControlableParticle(
     world: ClientWorld,
     pos: Vec3d,
     velocity: Vec3d,
-    val controlUUID: UUID
+    val controlUUID: UUID,
+    /**
+     * 是否始终转向玩家(默认实现)
+     */
+    val faceToCamera: Boolean = true
 ) : SpriteBillboardParticle(world, pos.x, pos.y, pos.z, velocity.x, velocity.y, velocity.z) {
     val controler: ParticleControler = ControlParticleManager.getControl(controlUUID)!!
 
@@ -180,10 +188,16 @@ abstract class ControlableParticle(
             alpha = value.coerceIn(0f, 1f)
         }
 
+    var previewAngleX: Float = 0f
+    var currentAngleX: Float = 0f
+
+    var previewAngleY: Float = 0f
+    var currentAngleY: Float = 0f
+
     /**
      * @see prevAngle
      */
-    var previewAngle: Float
+    var previewAngleZ: Float
         get() = prevAngle
         set(value) {
             prevAngle = value
@@ -192,7 +206,7 @@ abstract class ControlableParticle(
     /**
      * @see angle
      */
-    var currentAngle: Float
+    var currentAngleZ: Float
         get() = angle
         set(value) {
             angle = value
@@ -238,6 +252,22 @@ abstract class ControlableParticle(
         controler.particleInit()
     }
 
+    var lastRotate = Vector3f(previewAngleX, previewAngleY, previewAngleZ)
+    var updateRotate = false
+    fun rotateParticleTo(target: RelativeLocation) {
+        rotateParticleTo(Vector3f(target.x.toFloat(), target.y.toFloat(), target.z.toFloat()))
+    }
+
+    fun rotateParticleTo(target: Vec3d) {
+        rotateParticleTo(target.toVector3f())
+    }
+
+    fun rotateParticleTo(target: Vector3f) {
+        val (x, y, z) = Math3DUtil.calculateEulerAnglesToPoint(target)
+        updateRotate = true
+        lastRotate = Vector3f(x, y, z)
+    }
+
     /**
      * 防止频繁调用Math3DUtil (让键盘休息一会)
      * 也不用调用 color = Vector3f(xxx/255f,xxx/255f,xxx/255f)
@@ -264,13 +294,128 @@ abstract class ControlableParticle(
             super.tick()
         }
         controler.doTick()
+        prevPos = this.pos
         if (update) {
             prevPos = this.pos
             this.pos = lastPreview
             update = false
         }
+        previewAngleX = currentAngleX
+        previewAngleY = currentAngleY
+        previewAngleZ = currentAngleZ
+        if (updateRotate) {
+            currentAngleX = lastRotate.x
+            currentAngleY = lastRotate.y
+            currentAngleZ = lastRotate.z
+            updateRotate = false
+        }
     }
 
+    override fun buildGeometry(vertexConsumer: VertexConsumer, camera: Camera, tickDelta: Float) {
+        if (faceToCamera) {
+            super.buildGeometry(vertexConsumer, camera, tickDelta)
+            return
+        }
+        // 获取摄像机位置
+        val cameraPos = camera.pos
+        val x = (MathHelper.lerp(tickDelta.toDouble(), this.prevPosX, this.x) - cameraPos.getX()).toFloat()
+        val y = (MathHelper.lerp(tickDelta.toDouble(), this.prevPosY, this.y) - cameraPos.getY()).toFloat()
+        val z = (MathHelper.lerp(tickDelta.toDouble(), this.prevPosZ, this.z) - cameraPos.getZ()).toFloat()
+        val q = Quaternionf()
+        q.rotateXYZ(
+            MathHelper.lerp(tickDelta, this.previewAngleX, this.currentAngleX),
+            MathHelper.lerp(tickDelta, this.previewAngleY, this.currentAngleY),
+            MathHelper.lerp(tickDelta, this.previewAngleZ, this.currentAngleZ)
+        )
+        // 构建顶点几何
+        val light = this.getBrightness(tickDelta)
+
+
+        setParticleTexture(vertexConsumer, q, x, y, z, tickDelta, light)
+    }
+
+    private fun setParticleTexture(
+        vertexConsumer: VertexConsumer,
+        q: Quaternionf,
+        x: Float,
+        y: Float,
+        z: Float,
+        tickDelta: Float,
+        light: Int
+    ) {
+        val s = getSize(tickDelta)
+
+        addVertex(
+            vertexConsumer, q, x, y, z, 1f, -1f, maxU, maxV, s, light
+        )
+        addVertex(
+            vertexConsumer, q, x, y, z, 1f, 1f, maxU, minV, s, light
+        )
+        addVertex(
+            vertexConsumer, q, x, y, z, -1f, 1f, minU, minV, s, light
+        )
+        addVertex(
+            vertexConsumer, q, x, y, z, -1f, -1f, minU, maxV, s, light
+        )
+
+        // 背面
+        addVertex(
+            vertexConsumer, q, x, y, z,
+            vx = -1f, // 左下角 X
+            vy = -1f,
+            tu = minU, // UV 镜像
+            tv = maxV,
+            size = s,
+            light = light
+        )
+        addVertex(
+            vertexConsumer, q, x, y, z,
+            vx = -1f, // 左上角 X
+            vy = 1f,
+            tu = minU,
+            tv = minV,
+            size = s,
+            light = light
+        )
+        addVertex(
+            vertexConsumer, q, x, y, z,
+            vx = 1f,  // 右上角 X
+            vy = 1f,
+            tu = maxU, // UV 镜像
+            tv = minV,
+            size = s,
+            light = light
+        )
+        addVertex(
+            vertexConsumer, q, x, y, z,
+            vx = 1f,  // 右下角 X
+            vy = -1f,
+            tu = maxU,
+            tv = maxV,
+            size = s,
+            light = light
+        )
+    }
+
+    private fun addVertex(
+        consumer: VertexConsumer,
+        q: Quaternionf,
+        dx: Float,
+        dy: Float,
+        dz: Float,
+        vx: Float,
+        vy: Float,
+        tu: Float,
+        tv: Float,
+        size: Float,
+        light: Int
+    ) {
+        val pos = Vector3f(vx, vy, 0f).rotate(q).mul(size).add(dx, dy, dz)
+        consumer.vertex(pos.x, pos.y, pos.z)
+            .texture(tu, tv)
+            .color(red, green, blue, alpha)
+            .light(light)
+    }
 
     override fun getType(): ParticleTextureSheet? {
         return textureSheet

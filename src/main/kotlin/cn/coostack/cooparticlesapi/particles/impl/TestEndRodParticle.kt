@@ -14,9 +14,10 @@ class TestEndRodParticle(
     pos: Vec3d,
     velocity: Vec3d,
     controlUUID: UUID,
+    faceToCamera: Boolean,
     val provider: SpriteProvider
 ) :
-    ControlableParticle(world, pos, velocity, controlUUID) {
+    ControlableParticle(world, pos, velocity, controlUUID, faceToCamera) {
 
 
     init {
@@ -42,6 +43,7 @@ class TestEndRodParticle(
                 Vec3d(x, y, z),
                 Vec3d(velocityX, velocityY, velocityZ),
                 parameters.controlUUID,
+                parameters.faceToPlayer,
                 provider
             )
         }

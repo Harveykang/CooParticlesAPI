@@ -14,9 +14,10 @@ class ControlableEnchantmentParticle(
     pos: Vec3d,
     velocity: Vec3d,
     controlUUID: UUID,
+    faceToCamera: Boolean,
     val provider: SpriteProvider
 ) :
-    ControlableParticle(world, pos, velocity, controlUUID) {
+    ControlableParticle(world, pos, velocity, controlUUID, faceToCamera) {
 
     init {
         setSprite(provider.getSprite(age, maxAge))
@@ -48,6 +49,7 @@ class ControlableEnchantmentParticle(
                 Vec3d(x, y, z),
                 Vec3d(velocityX, velocityY, velocityZ),
                 parameters.controlUUID,
+                parameters.faceToPlayer,
                 provider
             )
         }

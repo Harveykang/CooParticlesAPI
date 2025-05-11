@@ -2,10 +2,12 @@ package cn.coostack.cooparticlesapi.particles.control
 
 import cn.coostack.cooparticlesapi.particles.Controlable
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
+import cn.coostack.cooparticlesapi.utils.Math3DUtil
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.util.math.Vec3d
+import org.joml.Vector3f
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -65,6 +67,18 @@ class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticl
         invokeQueue.forEach {
             it(particle)
         }
+    }
+
+    fun rotateParticleTo(target: RelativeLocation) {
+        rotateParticleTo(Vector3f(target.x.toFloat(), target.y.toFloat(), target.z.toFloat()))
+    }
+
+    fun rotateParticleTo(target: Vec3d) {
+        rotateParticleTo(target.toVector3f())
+    }
+
+    fun rotateParticleTo(target: Vector3f) {
+        particle.rotateParticleTo(target)
     }
 
     override fun controlUUID(): UUID {

@@ -11,7 +11,8 @@ import net.minecraft.network.codec.PacketCodec
 import net.minecraft.particle.ParticleType
 import java.util.UUID
 
-class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
+class TestEndRodEffect(controlUUID: UUID, faceToPlayer: Boolean = true) :
+    ControlableParticleEffect(controlUUID, faceToPlayer) {
     companion object {
         @JvmStatic
         val codec: MapCodec<TestEndRodEffect> = RecordCodecBuilder.mapCodec {
@@ -21,12 +22,15 @@ class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUI
                     val buffer = Unpooled.buffer()
                     buffer.writeBytes(toString.toByteArray())
                     buffer.nioBuffer()
+                },
+                Codec.BOOL.fieldOf("face_to_player").forGetter { effect ->
+                    effect.faceToPlayer
                 }
-            ).apply(it) { buf ->
+            ).apply(it) { buf, faceToPlayer ->
                 TestEndRodEffect(
                     UUID.fromString(
                         String(buf.array())
-                    )
+                    ), faceToPlayer
                 )
             }
         }
@@ -35,8 +39,9 @@ class TestEndRodEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUI
         val packetCode: PacketCodec<RegistryByteBuf, TestEndRodEffect> = PacketCodec.of(
             { effect, buf ->
                 buf.writeUuid(effect.controlUUID)
+                buf.writeBoolean(effect.faceToPlayer)
             }, {
-                TestEndRodEffect(it.readUuid())
+                TestEndRodEffect(it.readUuid(), it.readBoolean())
             }
         )
     }

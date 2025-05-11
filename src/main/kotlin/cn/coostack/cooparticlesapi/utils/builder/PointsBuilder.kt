@@ -59,6 +59,19 @@ class PointsBuilder {
         handler(Math3DUtil)
     )
 
+    fun addPoint(point: RelativeLocation): PointsBuilder {
+        points.add(point)
+        return this
+    }
+
+    fun addBezierCurve(
+        target: RelativeLocation,
+        startHandle: RelativeLocation,
+        endHandle: RelativeLocation,
+        count: Int
+    ): PointsBuilder = addWith {
+        generateBezierCurve(target, startHandle, endHandle, count)
+    }
 
     fun withBuilder(builder: PointsBuilder): PointsBuilder {
         addPoints(builder.create())

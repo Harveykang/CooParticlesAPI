@@ -11,7 +11,8 @@ import net.minecraft.network.codec.PacketCodec
 import net.minecraft.particle.ParticleType
 import java.util.UUID
 
-class ControlableEnchantmentEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
+class ControlableEnchantmentEffect(controlUUID: UUID, faceToPlayer: Boolean = true) :
+    ControlableParticleEffect(controlUUID, faceToPlayer) {
     companion object {
         @JvmStatic
         val codec: MapCodec<ControlableEnchantmentEffect> = RecordCodecBuilder.mapCodec {
@@ -21,12 +22,14 @@ class ControlableEnchantmentEffect(controlUUID: UUID) : ControlableParticleEffec
                     val buffer = Unpooled.buffer()
                     buffer.writeBytes(toString.toByteArray())
                     buffer.nioBuffer()
+                }, Codec.BOOL.fieldOf("face_to_player").forGetter { effect ->
+                    effect.faceToPlayer
                 }
-            ).apply(it) { buf ->
+            ).apply(it) { buf, b ->
                 ControlableEnchantmentEffect(
                     UUID.fromString(
                         String(buf.array())
-                    )
+                    ), b
                 )
             }
         }
@@ -35,8 +38,9 @@ class ControlableEnchantmentEffect(controlUUID: UUID) : ControlableParticleEffec
         val packetCode: PacketCodec<RegistryByteBuf, ControlableEnchantmentEffect> = PacketCodec.of(
             { effect, buf ->
                 buf.writeUuid(effect.controlUUID)
+                buf.writeBoolean(effect.faceToPlayer)
             }, {
-                ControlableEnchantmentEffect(it.readUuid())
+                ControlableEnchantmentEffect(it.readUuid(), it.readBoolean())
             }
         )
     }

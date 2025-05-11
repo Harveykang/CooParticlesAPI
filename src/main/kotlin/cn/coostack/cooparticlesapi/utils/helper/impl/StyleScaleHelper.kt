@@ -29,5 +29,4 @@ class StyleScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int) :
     override fun scale(scale: Double) {
         group.scale(scale.coerceIn(minScale,maxScale))
     }
-
 }

@@ -66,6 +66,9 @@ data class RelativeLocation(var x: Double, var y: Double, var z: Double) {
 
     // 转换为单位向量
     fun normalize(): RelativeLocation {
+        if (length() <= 1e-6){
+            return RelativeLocation(1.0,0.0,0.0)
+        }
         val length = sqrt(x * x + y * y + z * z)
         return RelativeLocation(x / length, y / length, z / length)
     }

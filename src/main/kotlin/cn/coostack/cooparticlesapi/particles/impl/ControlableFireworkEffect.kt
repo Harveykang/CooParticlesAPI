@@ -11,7 +11,7 @@ import net.minecraft.network.codec.PacketCodec
 import net.minecraft.particle.ParticleType
 import java.util.UUID
 
-class ControlableFireworkEffect(controlUUID: UUID) : ControlableParticleEffect(controlUUID) {
+class ControlableFireworkEffect(controlUUID: UUID, faceToPlayer: Boolean = true) : ControlableParticleEffect(controlUUID,faceToPlayer) {
     companion object {
         @JvmStatic
         val codec: MapCodec<ControlableFireworkEffect> = RecordCodecBuilder.mapCodec {
@@ -21,12 +21,14 @@ class ControlableFireworkEffect(controlUUID: UUID) : ControlableParticleEffect(c
                     val buffer = Unpooled.buffer()
                     buffer.writeBytes(toString.toByteArray())
                     buffer.nioBuffer()
+                },Codec.BOOL.fieldOf("face_to_player").forGetter { effect ->
+                    effect.faceToPlayer
                 }
-            ).apply(it) { buf ->
+            ).apply(it) { buf,b ->
                 ControlableFireworkEffect(
                     UUID.fromString(
                         String(buf.array())
-                    )
+                    ),b
                 )
             }
         }
@@ -35,8 +37,9 @@ class ControlableFireworkEffect(controlUUID: UUID) : ControlableParticleEffect(c
         val packetCode: PacketCodec<RegistryByteBuf, ControlableFireworkEffect> = PacketCodec.of(
             { effect, buf ->
                 buf.writeUuid(effect.controlUUID)
+                buf.writeBoolean(effect.faceToPlayer)
             }, {
-                ControlableFireworkEffect(it.readUuid())
+                ControlableFireworkEffect(it.readUuid(),it.readBoolean())
             }
         )
     }
