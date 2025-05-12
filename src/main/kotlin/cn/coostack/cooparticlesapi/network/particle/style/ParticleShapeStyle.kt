@@ -7,6 +7,7 @@ import cn.coostack.cooparticlesapi.utils.builder.PointsBuilder
 import cn.coostack.cooparticlesapi.utils.helper.ScaleHelper
 import cn.coostack.cooparticlesapi.utils.helper.impl.StyleBezierValueScaleHelper
 import cn.coostack.cooparticlesapi.utils.helper.impl.StyleScaleHelper
+import cn.coostack.cooparticlesapi.utils.helper.impl.StyleStatusHelper
 import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.math.Vec3d
@@ -27,6 +28,27 @@ open class ParticleShapeStyle(uuid: UUID) :
     private var onDisplayInvoke: ParticleShapeStyle.() -> Unit = {}
     private var beforeDisplayInvoke: ParticleShapeStyle.(Map<StyleData, RelativeLocation>) -> Unit = {}
     private val pointBuilders = LinkedHashMap<PointsBuilder, (RelativeLocation) -> StyleData>()
+
+    /**
+     * 通过判断(外层) 提供的状态工具来决定是否反转缩放
+     * 在toggleDisplay执行这个方法
+     */
+    val reverseFunctionFromStatus: (ParticleShapeStyle, StyleStatusHelper) -> Unit = function@{ it, displayStatus ->
+        // 必须设置缩放工具
+        if (scaleHelper == null) return@function
+        it.addPreTickAction {
+            if (it.scaleReversed && it.scaleHelper!!.isZero()) {
+                it.remove()
+                return@addPreTickAction
+            }
+            if (displayStatus.displayStatus != 2) {
+                return@addPreTickAction
+            }
+            if (!it.scaleReversed) {
+                it.scaleReversed(false)
+            }
+        }
+    }
 
     /**
      * 设置为true时 会利用scaleHelper 每tick增长一点

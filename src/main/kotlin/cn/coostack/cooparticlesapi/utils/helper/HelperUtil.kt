@@ -50,7 +50,7 @@ object HelperUtil {
     fun scaleGroup(minScale: Double, maxScale: Double, scaleTick: Int): ScaleHelper =
         GroupScaleHelper(minScale, maxScale, scaleTick)
 
-    fun scaleStatus(closedInterval: Int): StatusHelper =
+    fun styleStatus(closedInterval: Int): StatusHelper =
         StyleStatusHelper().apply { this.closedInternal = closedInterval }
 
     fun alphaStyle(minAlpha: Double, maxAlpha: Double, alphaTick: Int): AlphaHelper {
