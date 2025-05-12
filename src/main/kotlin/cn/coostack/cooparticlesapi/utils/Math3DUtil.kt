@@ -594,12 +594,21 @@ object Math3DUtil {
      */
     fun generateBezierCurve(
         target: RelativeLocation,
+        /**
+         * 起点的曲柄向量
+         */
         startHandle: RelativeLocation,
+        /**
+         * 终点的曲柄向量 (以 target为原点)
+         * 在Pr ae的速度,值曲线的下一个关键帧曲柄中
+         * 方向和startHandle相反
+         * 因此这里也要相反
+         */
         endHandle: RelativeLocation,
         count: Int
     ): List<RelativeLocation> {
         require(count >= 1) { "Number of points must be at least 1" }
-
+        val end = target + endHandle
         return List(count) { i ->
             val t = when (count) {
                 1 -> 1.0
@@ -613,12 +622,12 @@ object Math3DUtil {
             // 三次贝塞尔曲线公式
             val x = (u2 * u * 0.0) +          // P0 (0,0)
                     (3 * u2 * t * startHandle.x) +  // P1 control point
-                    (3 * u * t2 * endHandle.x) +    // P2 control point
+                    (3 * u * t2 * end.x) +    // P2 control point
                     (t2 * t * target.x)           // P3 (end point)
 
             val y = (u2 * u * 0.0) +
                     (3 * u2 * t * startHandle.y) +
-                    (3 * u * t2 * endHandle.y) +
+                    (3 * u * t2 * end.y) +
                     (t2 * t * target.y)
 
             RelativeLocation(x, y, 0.0)

@@ -4,6 +4,8 @@ import cn.coostack.cooparticlesapi.network.buffer.ParticleControlerDataBuffer
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import cn.coostack.cooparticlesapi.utils.builder.PointsBuilder
+import cn.coostack.cooparticlesapi.utils.helper.ScaleHelper
+import cn.coostack.cooparticlesapi.utils.helper.impl.StyleBezierValueScaleHelper
 import cn.coostack.cooparticlesapi.utils.helper.impl.StyleScaleHelper
 import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.entity.player.PlayerEntity
@@ -21,7 +23,7 @@ import java.util.UUID
  */
 open class ParticleShapeStyle(uuid: UUID) :
     ParticleGroupStyle(64.0, uuid) {
-    val scaleHelper = StyleScaleHelper(1.0, 1.0, 1)
+    var scaleHelper: ScaleHelper? = null
     private var onDisplayInvoke: ParticleShapeStyle.() -> Unit = {}
     private var beforeDisplayInvoke: ParticleShapeStyle.(Map<StyleData, RelativeLocation>) -> Unit = {}
     private val pointBuilders = LinkedHashMap<PointsBuilder, (RelativeLocation) -> StyleData>()
@@ -54,20 +56,31 @@ open class ParticleShapeStyle(uuid: UUID) :
      * @param max 直接让scale从最大开始
      */
     fun scaleReversed(max: Boolean): ParticleShapeStyle {
+        scaleHelper ?: return this
         scaleReversed = true
         if (max) {
-            scaleHelper.toggleScale(scaleHelper.maxScale)
+            scaleHelper!!.toggleScale(scaleHelper!!.maxScale)
         }
         return this
     }
 
     fun loadScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int): ParticleShapeStyle {
-        scaleHelper.minScale = minScale
-        scaleHelper.maxScale = maxScale
-        scaleHelper.scaleTick = scaleTick
+        scaleHelper = StyleScaleHelper(minScale, maxScale, scaleTick)
         scalePreTick = true
-        scaleHelper.loadControler(this)
-        scaleHelper.recalculateStep()
+        scaleHelper!!.loadControler(this)
+        return this
+    }
+
+    fun loadScaleHelperBezierValue(
+        minScale: Double,
+        maxScale: Double,
+        scaleTick: Int,
+        c1: RelativeLocation,
+        c2: RelativeLocation
+    ): ParticleShapeStyle {
+        scaleHelper = StyleBezierValueScaleHelper(scaleTick, minScale, maxScale, c1, c2)
+        scalePreTick = true
+        scaleHelper!!.loadControler(this)
         return this
     }
 
@@ -102,14 +115,14 @@ open class ParticleShapeStyle(uuid: UUID) :
     override fun onDisplay() {
         onDisplayInvoke()
         addPreTickAction {
-            if (!scalePreTick) {
+            if (!scalePreTick || scaleHelper == null) {
                 return@addPreTickAction
             }
 
             if (scaleReversed) {
-                scaleHelper.doScaleReversed()
+                scaleHelper!!.doScaleReversed()
             } else {
-                scaleHelper.doScale()
+                scaleHelper!!.doScale()
             }
         }
     }

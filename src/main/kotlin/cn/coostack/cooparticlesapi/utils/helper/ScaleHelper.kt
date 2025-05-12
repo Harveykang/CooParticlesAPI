@@ -53,7 +53,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         if (getLoadedGroup() == null) {
             return
         }
-        current = scaleTick
+        current = scaleTick - 1
         scale(maxScale)
     }
 
@@ -63,7 +63,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         }
         val enter = current.coerceAtLeast(0)
         this.current = enter
-        if (current >= scaleTick) {
+        if (current >= scaleTick - 1) {
             resetScaleMax()
             return
         }
@@ -96,7 +96,7 @@ abstract class ScaleHelper(var minScale: Double, var maxScale: Double, var scale
         scale(getGroupScale() - step)
     }
 
-    fun over(): Boolean = scaleTick <= current
+    open fun over(): Boolean = scaleTick - 1 <= current
     fun isZero(): Boolean = current <= 0
 
     abstract fun getLoadedGroup(): Controlable<*>?
