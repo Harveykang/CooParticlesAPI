@@ -47,5 +47,6 @@ class StyleAlphaHelper(minAlpha: Double, maxAlpha: Double, alphaTick: Int) :
             return
         }
         this.style = controler
+        setAlpha(minAlpha)
     }
 }

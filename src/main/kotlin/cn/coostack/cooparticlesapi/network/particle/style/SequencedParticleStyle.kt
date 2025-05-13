@@ -272,9 +272,9 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
             onDisplay()
             return
         }
-        onDisplay()
         flush()
         toggleDataStatus()
+        onDisplay()
     }
 
     /**
@@ -338,10 +338,6 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
             if (method == SequencedChangeMethod.CHANGE_LINKED) {
                 // 一个客户端和服务端同时执行完 addSingle -> particleLinkageDisplayCurrentIndex + count(客户端当前值) -> index (来自服务器)
                 // 一个客户端和服务端同时执行完 removeSingle -> particleLinkageDisplayCurrentIndex - count(客户端当前值) -> index (来自服务器)
-                val index = if (status) indexes[0] else indexes[indexes.size - 1]
-                if (index != particleLinkageDisplayCurrentIndex) {
-                    return@let
-                }
                 if (status) {
                     addMultiple(indexes.size)
                 } else {
@@ -397,7 +393,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
             // 同步到其他客户端
             change(
                 mapOf(
-                    "rotate_to" to ParticleControlerDataBuffers.vec3d(to.toVector()),
+                    "rotate_to" to ParticleControlerDataBuffers.relative(to),
                     "rotate_angle" to ParticleControlerDataBuffers.double(angle)
                 )
             )
@@ -414,7 +410,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
             // 同步到其他客户端
             change(
                 mapOf(
-                    "rotate_to" to ParticleControlerDataBuffers.vec3d(to.toVector())
+                    "rotate_to" to ParticleControlerDataBuffers.relative(to)
                 )
             )
         }
@@ -439,9 +435,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
             return
         }
 
-        val pair = sequencedParticles[index]
-        val rl = pair.second
-        val data = pair.first
+        val (data, rl) = sequencedParticles[index]
         val uuid = data.uuid
 
         val displayer = data.displayerBuilder(uuid)

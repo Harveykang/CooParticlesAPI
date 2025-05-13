@@ -246,8 +246,8 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
             onDisplay()
             return
         }
-        onDisplay()
         flush()
+        onDisplay()
     }
 
     open fun flush() {

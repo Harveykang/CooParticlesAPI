@@ -75,7 +75,7 @@ abstract class AlphaHelper(var minAlpha: Double, var maxAlpha: Double, var alpha
     fun increaseAlpha() {
         getLoadedGroup()?.takeUnless { over() }?.let {
             current++
-            setAlpha(getCurrentAlpha() + step)
+            setAlpha(minAlpha + step * current)
         }
     }
 
@@ -83,7 +83,7 @@ abstract class AlphaHelper(var minAlpha: Double, var maxAlpha: Double, var alpha
     fun decreaseAlpha() {
         getLoadedGroup()?.takeUnless { isZero() }?.let {
             current--
-            setAlpha(getCurrentAlpha() - step)
+            setAlpha(minAlpha + step * current)
         }
     }
 

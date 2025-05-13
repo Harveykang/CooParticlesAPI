@@ -165,6 +165,7 @@ object ParticleControlerDataBuffers {
         register(LongArray::class.java, LongArrayControlerBuffer.id, LongArrayControlerBuffer::class.java)
         register(UUID::class.java, UUIDControlerBuffer.id, UUIDControlerBuffer::class.java)
         register(Vec3d::class.java, Vec3dControlerBuffer.id, Vec3dControlerBuffer::class.java)
+        register(RelativeLocation::class.java, RelativeLocationControlerBuffer.id, RelativeLocationControlerBuffer::class.java)
         register(Short::class.java, ShortControlerBuffer.id, ShortControlerBuffer::class.java)
         register(Unit::class.java, EmptyControlerBuffer.id, EmptyControlerBuffer::class.java)
         register(Char::class.java, CharControlerBuffer.id, CharControlerBuffer::class.java)
