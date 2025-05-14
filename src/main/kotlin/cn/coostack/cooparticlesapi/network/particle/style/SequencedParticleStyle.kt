@@ -81,7 +81,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
      */
     var particleLinkageDisplayCurrentIndex = 0
         private set(value) {
-            field = value.coerceAtLeast(0)
+            field = value.coerceIn(0, getParticlesCount() - 1)
         }
 
     /**
@@ -127,6 +127,10 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
         if (count <= 0) {
             return
         }
+        if (count == 1) {
+            addSingle()
+            return
+        }
         if (!client) {
             // 处理服务器
             // 发包
@@ -139,7 +143,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
                 )
             change({
                 particleLinkageDisplayCurrentIndex =
-                    (particleLinkageDisplayCurrentIndex + count).coerceAtMost(sequencedParticles.size - 1)
+                    (particleLinkageDisplayCurrentIndex + count).coerceAtMost(getParticlesCount() - 1)
             }, args)
             return
         }
@@ -169,6 +173,10 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
 
     fun removeMultiple(count: Int) {
         if (count <= 0) {
+            return
+        }
+        if (count == 1) {
+            removeSingle()
             return
         }
 

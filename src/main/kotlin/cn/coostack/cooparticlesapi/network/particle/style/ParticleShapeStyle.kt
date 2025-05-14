@@ -49,6 +49,7 @@ open class ParticleShapeStyle(uuid: UUID) :
             }
         }
     }
+    var spawnAge = 0
 
     /**
      * 设置为true时 会利用scaleHelper 每tick增长一点
@@ -137,6 +138,7 @@ open class ParticleShapeStyle(uuid: UUID) :
     override fun onDisplay() {
         onDisplayInvoke()
         addPreTickAction {
+            spawnAge++
             if (!scalePreTick || scaleHelper == null) {
                 return@addPreTickAction
             }

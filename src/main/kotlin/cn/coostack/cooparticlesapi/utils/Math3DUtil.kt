@@ -336,7 +336,8 @@ object Math3DUtil {
         toPoint: RelativeLocation,
         axis: RelativeLocation
     ): List<RelativeLocation> {
-        if (axis.cross(toPoint).length() in -1e-5..1e-5) {
+        // 同向共线
+        if (axis.cross(toPoint).length() in -1e-5..1e-5 && axis.dot(toPoint) > 0) {
             return locList
         }
         // 计算旋转角度

@@ -40,7 +40,7 @@ class SequencedParticleShapeStyle(uuid: UUID) :
      * 符合条件后 animationIndex 会递增
      * 直到到达边界
      */
-    private val animationConditions = ArrayList<Pair<Predicate<SequencedParticleStyle>, Int>>()
+    private val animationConditions = ArrayList<Pair<Predicate<SequencedParticleShapeStyle>, Int>>()
     var animationIndex = 0
         private set
 
@@ -65,6 +65,7 @@ class SequencedParticleShapeStyle(uuid: UUID) :
                 }
             }
         }
+    var spawnAge = 0
 
     /**
      * 设置为true时 会利用scaleHelper 每tick增长一点
@@ -100,7 +101,10 @@ class SequencedParticleShapeStyle(uuid: UUID) :
      * @param predicate 设置添加/删除动画的要求
      * @param add 向下的个数
      */
-    fun appendAnimateCondition(predicate: Predicate<SequencedParticleStyle>, add: Int): SequencedParticleShapeStyle {
+    fun appendAnimateCondition(
+        predicate: Predicate<SequencedParticleShapeStyle>,
+        add: Int
+    ): SequencedParticleShapeStyle {
         animationConditions.add(predicate to add)
         return this
     }
@@ -148,7 +152,7 @@ class SequencedParticleShapeStyle(uuid: UUID) :
     /**
      * 在生成粒子之前执行
      */
-    fun toggleBeforeDisplay(toggleMethod: SequencedParticleShapeStyle.(Map<SortedStyleData, RelativeLocation>) -> Unit): SequencedParticleShapeStyle {
+    fun toggleBeforeDisplay(toggleMethod: SequencedParticleShapeStyle.(SortedMap<SortedStyleData, RelativeLocation>) -> Unit): SequencedParticleShapeStyle {
         beforeDisplayInvoke = toggleMethod
         return this
     }
@@ -176,6 +180,7 @@ class SequencedParticleShapeStyle(uuid: UUID) :
             }
         }
         addPreTickAction {
+            spawnAge++
             if (!scalePreTick || scaleHelper == null) {
                 return@addPreTickAction
             }
@@ -188,9 +193,13 @@ class SequencedParticleShapeStyle(uuid: UUID) :
         }
     }
 
-    private val bufferFrame: SortedMap<SortedStyleData, RelativeLocation> = TreeMap()
+    private var count = -1
     override fun getParticlesCount(): Int {
-        return bufferFrame.size
+        // 调用此方法比初始化count早
+        if (count == -1 || count == 0) {
+            count = getCurrentFramesSequenced().size
+        }
+        return count
     }
 
     override fun getCurrentFramesSequenced(): SortedMap<SortedStyleData, RelativeLocation> {
