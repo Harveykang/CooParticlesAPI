@@ -310,7 +310,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         }
         locations.forEach {
             val uuid = it.key.uuid
-            val len = particleDefaultLength[uuid]!!
+            val len = particleDefaultLength[uuid]?: return@forEach
             val value = it.value
             value.multiply(len * scale / value.length())
         }
