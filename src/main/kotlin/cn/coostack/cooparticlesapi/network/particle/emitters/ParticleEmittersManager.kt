@@ -35,7 +35,7 @@ object ParticleEmittersManager {
 
     init {
         register(PhysicsParticleEmitters.ID, PhysicsParticleEmitters.CODEC)
-        register(SimpleParticleEmitters.ID, PhysicsParticleEmitters.CODEC)
+        register(SimpleParticleEmitters.ID, SimpleParticleEmitters.CODEC)
     }
 
     fun register(

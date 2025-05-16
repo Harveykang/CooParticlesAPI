@@ -78,7 +78,7 @@ class PhysicsParticleEmitters(
         const val SEA_AIR_DENSITY = 1.225
         const val DRAG_COEFFICIENT = 0.01
         const val CROSS_SECTIONAL_AREA = 0.01
-        val ID = "single-physics-emitters"
+        val ID = "physics-emitters"
         val CODEC: PacketCodec<RegistryByteBuf, ParticleEmitters> =
             PacketCodec.ofStatic<RegistryByteBuf, ParticleEmitters>(
                 { buf, data ->
@@ -96,11 +96,11 @@ class PhysicsParticleEmitters(
                     buf.writeDouble(data.airDensity)
                     buf.writeDouble(data.mass)
                     buf.writeVec3d(data.wind)
-                    buf.writeString(data.evalEmittersXWithT)
-                    buf.writeString(data.evalEmittersYWithT)
-                    buf.writeString(data.evalEmittersZWithT)
+                    buf.writeString(data.evalEmittersXWithT, 32767)
+                    buf.writeString(data.evalEmittersYWithT, 32767)
+                    buf.writeString(data.evalEmittersZWithT, 32767)
                     buf.writeVec3d(data.offset)
-                    buf.writeString(data.shootType.getID())
+                    buf.writeString(data.shootType.getID(), 32767)
                     data.shootType.getCodec().encode(buf, data.shootType)
                     ControlableParticleData.PACKET_CODEC.encode(
                         buf,
@@ -120,11 +120,11 @@ class PhysicsParticleEmitters(
                     val airDensity = it.readDouble()
                     val mass = it.readDouble()
                     val wind = it.readVec3d()
-                    val xE = it.readString()
-                    val yE = it.readString()
-                    val zE = it.readString()
+                    val xE = it.readString(32767)
+                    val yE = it.readString(32767)
+                    val zE = it.readString(32767)
                     val offset = it.readVec3d()
-                    val typeID = it.readString()
+                    val typeID = it.readString(32767)
                     val codec = EmittersShootTypes.fromID(typeID)!!
                     val type = codec.decode(it)
                     val templateData = ControlableParticleData.PACKET_CODEC.decode(it)
@@ -194,7 +194,7 @@ class PhysicsParticleEmitters(
             return
         }
 
-        if (tick % max(1,delay) == 0) {
+        if (tick % max(1, delay) == 0) {
             // 执行粒子变更操作
             // 生成新粒子
             spawnParticle()
