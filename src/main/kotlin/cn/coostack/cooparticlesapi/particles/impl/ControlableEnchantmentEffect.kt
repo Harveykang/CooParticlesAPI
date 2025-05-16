@@ -49,4 +49,11 @@ class ControlableEnchantmentEffect(controlUUID: UUID, faceToPlayer: Boolean = tr
     override fun getType(): ParticleType<*>? {
         return CooModParticles.enchantment
     }
+    override fun getPacketCodec(): PacketCodec<RegistryByteBuf, out ControlableParticleEffect> {
+        return packetCode
+    }
+
+    override fun clone(): ControlableParticleEffect {
+        return ControlableEnchantmentEffect(controlUUID, faceToPlayer)
+    }
 }

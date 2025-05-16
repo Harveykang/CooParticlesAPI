@@ -48,4 +48,13 @@ class ControlableFireworkEffect(controlUUID: UUID, faceToPlayer: Boolean = true)
     override fun getType(): ParticleType<*>? {
         return CooModParticles.controlableFirework
     }
+    override fun getPacketCodec(): PacketCodec<RegistryByteBuf, out ControlableParticleEffect> {
+        return packetCode
+    }
+
+    override fun clone(): ControlableParticleEffect {
+        return ControlableFireworkEffect(
+            controlUUID,faceToPlayer
+        )
+    }
 }

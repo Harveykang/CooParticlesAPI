@@ -302,6 +302,10 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
     }
 
     fun toggleScale(locations: Map<StyleData, RelativeLocation>) {
+        if (!valid) {
+            // remove过后 无法同步
+            return
+        }
         if (particleDefaultLength.isEmpty()) {
             locations.forEach {
                 val uuid = it.key.uuid
@@ -310,7 +314,7 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
         }
         locations.forEach {
             val uuid = it.key.uuid
-            val len = particleDefaultLength[uuid]?: return@forEach
+            val len = particleDefaultLength[uuid] ?: return@forEach
             val value = it.value
             value.multiply(len * scale / value.length())
         }
@@ -322,8 +326,15 @@ abstract class ParticleGroupStyle(var visibleRange: Double = 32.0, val uuid: UUI
             return
         }
         scale = new
+        // 如果没有创建, 那么此处的环境100%是创建此对象时使用的环境
+        // 多为服务端(除非有人使在Client环境创建了这个类)
         if (displayed) {
             toggleScaleDisplayed()
+        }
+        // 发包有效
+        if (!valid) {
+            // remove过后 无法同步
+            return
         }
         if (!client) {
             change(mapOf("scale" to ParticleControlerDataBuffers.double(new)))

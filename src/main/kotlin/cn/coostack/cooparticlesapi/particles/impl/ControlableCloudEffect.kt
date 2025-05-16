@@ -51,4 +51,12 @@ class ControlableCloudEffect(controlUUID: UUID, faceToPlayer: Boolean = true) : 
     override fun getType(): ParticleType<*>? {
         return CooModParticles.controlableCloud
     }
+
+    override fun getPacketCodec(): PacketCodec<RegistryByteBuf, out ControlableParticleEffect> {
+        return packetCode
+    }
+
+    override fun clone(): ControlableParticleEffect {
+        return ControlableCloudEffect(controlUUID, faceToPlayer)
+    }
 }

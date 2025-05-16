@@ -1,11 +1,14 @@
 package cn.coostack.cooparticlesapi
 
+import cn.coostack.cooparticlesapi.network.packet.PacketParticleEmittersS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
+import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticleEmittersPacketHandler
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticleGroupPacketHandler
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticlePacketHandler
 import cn.coostack.cooparticlesapi.network.packet.client.listener.ClientParticleStylePacketHandler
+import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
 import cn.coostack.cooparticlesapi.network.particle.style.ParticleStyleManager
 import cn.coostack.cooparticlesapi.particles.CooModParticles
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
@@ -36,6 +39,7 @@ object CooParticleAPIClient : ClientModInitializer {
         ClientTickEvents.START_WORLD_TICK.register {
             ClientParticleGroupManager.doClientTick()
             ParticleStyleManager.doTickClient()
+            ParticleEmittersManager.doTickClient()
         }
         ClientWorldEvents.AfterClientWorldChange { _, _ ->
             ClientParticleGroupManager.clearAllVisible()
@@ -83,6 +87,10 @@ object CooParticleAPIClient : ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(
             PacketParticleGroupS2C.payloadID,
             ClientParticleGroupPacketHandler
+        )
+        ClientPlayNetworking.registerGlobalReceiver(
+            PacketParticleEmittersS2C.payloadID,
+            ClientParticleEmittersPacketHandler
         )
         ClientPlayNetworking.registerGlobalReceiver(
             PacketParticleStyleS2C.payloadID,

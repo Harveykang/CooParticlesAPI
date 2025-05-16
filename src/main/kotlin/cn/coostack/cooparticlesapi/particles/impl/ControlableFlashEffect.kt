@@ -40,7 +40,7 @@ class ControlableFlashEffect(controlUUID: UUID, faceToPlayer: Boolean = true) :
                 buf.writeUuid(effect.controlUUID)
                 buf.writeBoolean(effect.faceToPlayer)
             }, {
-                ControlableFlashEffect(it.readUuid(),it.readBoolean())
+                ControlableFlashEffect(it.readUuid(), it.readBoolean())
             }
         )
     }
@@ -48,5 +48,15 @@ class ControlableFlashEffect(controlUUID: UUID, faceToPlayer: Boolean = true) :
 
     override fun getType(): ParticleType<*>? {
         return CooModParticles.controlableFlash
+    }
+
+    override fun getPacketCodec(): PacketCodec<RegistryByteBuf, out ControlableParticleEffect> {
+        return packetCode
+    }
+
+    override fun clone(): ControlableParticleEffect {
+        return ControlableFlashEffect(
+            controlUUID, faceToPlayer
+        )
     }
 }

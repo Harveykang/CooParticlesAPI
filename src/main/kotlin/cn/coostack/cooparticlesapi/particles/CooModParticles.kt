@@ -47,7 +47,7 @@ object CooModParticles {
 
     fun reg() {}
     val testEndRod: ParticleType<TestEndRodEffect> = register(
-        "test_end_rod", false, { TestEndRodEffect.Companion.codec }, { TestEndRodEffect.Companion.packetCode }
+        "test_end_rod", false, { TestEndRodEffect.codec }, { TestEndRodEffect.packetCode }
     )
 
     val enchantment: ParticleType<ControlableEnchantmentEffect> = register(

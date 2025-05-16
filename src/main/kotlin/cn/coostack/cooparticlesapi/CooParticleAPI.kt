@@ -4,11 +4,15 @@ import cn.coostack.cooparticlesapi.barrages.BarrageManager
 import cn.coostack.cooparticlesapi.config.APIConfigManager
 import cn.coostack.cooparticlesapi.items.CooItems
 import cn.coostack.cooparticlesapi.items.group.CooItemGroup
+import cn.coostack.cooparticlesapi.network.packet.PacketParticleEmittersS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleGroupS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleS2C
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroupManager
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroup
+import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
+import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootType
+import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
 import cn.coostack.cooparticlesapi.network.particle.style.ParticleStyleManager
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
 import cn.coostack.cooparticlesapi.particles.control.group.ClientParticleGroupManager
@@ -21,6 +25,11 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
 import cn.coostack.cooparticlesapi.particles.ControlableParticleEffect
+import cn.coostack.cooparticlesapi.particles.ControlableParticleEffectManager
+import cn.coostack.cooparticlesapi.particles.CooModParticles
+import com.ezylang.evalex.Expression
+import com.ezylang.evalex.config.ExpressionConfiguration
+
 object CooParticleAPI : ModInitializer {
     val logger = LoggerFactory.getLogger("CooParticleAPI")!!
     const val MOD_ID = "cooparticlesapi"
@@ -55,12 +64,20 @@ object CooParticleAPI : ModInitializer {
      * @see ControlableParticleEffect 对应所需要的粒子效果
      */
     override fun onInitialize() {
+        val builder = Expression("1+SQRT(x)")
+            .with("x", 4.0)
+            .evaluate()
+        logger.info("eval api {}", builder.value)
         CooItemGroup.reg()
         CooItems.reg()
+        CooModParticles.reg()
+        EmittersShootTypes.init()
         APIConfigManager.loadConfig()
+        ControlableParticleEffectManager.init()
         ServerTickEvents.START_SERVER_TICK.register { _ ->
             ServerParticleGroupManager.upgrade()
             ParticleStyleManager.doTickServer()
+            ParticleEmittersManager.doTickServer()
             BarrageManager.doTick()
             scheduler.doTick()
         }
@@ -70,5 +87,6 @@ object CooParticleAPI : ModInitializer {
         PacketParticleGroupS2C.init()
         PacketParticleS2C.init()
         PacketParticleStyleS2C.init()
+        PacketParticleEmittersS2C.init()
     }
 }
