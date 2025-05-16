@@ -3,6 +3,7 @@ package cn.coostack.cooparticlesapi.network.particle.emitters
 import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleEmittersS2C
 import cn.coostack.cooparticlesapi.network.particle.emitters.impl.PhysicsParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.SimpleParticleEmitters
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.RegistryByteBuf
 import net.minecraft.network.codec.PacketCodec
@@ -34,6 +35,7 @@ object ParticleEmittersManager {
 
     init {
         register(PhysicsParticleEmitters.ID, PhysicsParticleEmitters.CODEC)
+        register(SimpleParticleEmitters.ID, PhysicsParticleEmitters.CODEC)
     }
 
     fun register(
