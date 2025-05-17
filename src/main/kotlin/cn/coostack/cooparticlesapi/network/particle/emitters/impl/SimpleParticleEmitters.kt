@@ -2,6 +2,7 @@ package cn.coostack.cooparticlesapi.network.particle.emitters.impl
 
 import cn.coostack.cooparticlesapi.network.particle.emitters.ControlableParticleData
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
@@ -133,6 +134,9 @@ class SimpleParticleEmitters(
 
     override fun stop() {
         cancelled = true
+        if (world?.isClient == false) {
+            ParticleEmittersManager.updateEmitters(this)
+        }
     }
 
     override fun tick() {
@@ -158,7 +162,7 @@ class SimpleParticleEmitters(
         if (!world!!.isClient) {
             return
         }
-        if (tick % max(1,delay) == 0) {
+        if (tick % max(1, delay) == 0) {
             // 执行粒子变更操作
             // 生成新粒子
             spawnParticle()

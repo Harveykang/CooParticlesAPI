@@ -2,6 +2,7 @@ package cn.coostack.cooparticlesapi.network.particle.emitters.impl
 
 import cn.coostack.cooparticlesapi.network.particle.emitters.ControlableParticleData
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
@@ -169,6 +170,9 @@ class PhysicsParticleEmitters(
 
     override fun stop() {
         cancelled = true
+        if (world?.isClient == false) {
+            ParticleEmittersManager.updateEmitters(this)
+        }
     }
 
     override fun tick() {
