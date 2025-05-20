@@ -37,7 +37,7 @@ class StyleAlphaHelper(minAlpha: Double, maxAlpha: Double, alphaTick: Int) :
                 }
             }
         }
-        style?.particles?.forEach {
+        style!!.particles.forEach {
             setControlableAlpha(it.value)
         }
     }

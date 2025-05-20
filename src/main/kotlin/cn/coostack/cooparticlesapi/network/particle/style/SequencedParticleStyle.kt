@@ -80,9 +80,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
      * 此参数所指向的状态为false
      */
     var particleLinkageDisplayCurrentIndex = 0
-        private set(value) {
-            field = value.coerceIn(0, getParticlesCount() - 1)
-        }
+        private set
 
     /**
      * @return 当前粒子样式的样式个数 (客户端执行getCurrentFramesSequenced返回的集合长度)
@@ -461,7 +459,7 @@ abstract class SequencedParticleStyle(visibleRange: Double = 32.0, uuid: UUID = 
     }
 
     private fun toggleFromStatus(index: Int, status: Boolean) {
-        if (index >= sequencedParticles.size && client) return
+        if (index >= sequencedParticles.size && client || index > getParticlesCount()) return
         if (status && client) {
             createWithIndex(index)
         } else {

@@ -12,9 +12,7 @@ class GroupScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int) :
     ScaleHelper(minScale, maxScale, scaleTick) {
     lateinit var group: ControlableParticleGroup
     override fun loadControler(controler: Controlable<*>) {
-        if (controler !is ControlableParticleGroup) {
-            return
-        }
+        controler as ControlableParticleGroup
         group = controler
         group.scale(minScale)
     }

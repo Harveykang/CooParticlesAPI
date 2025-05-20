@@ -11,17 +11,16 @@ class GroupProgressSequencedHelper(
 ) : ProgressSequencedHelper(maxCount, progressMaxTick) {
     private var linkedStyle: SequencedParticleGroup? = null
     override fun addMultiple(count: Int) {
-        linkedStyle?.addMultiple(count)
+        linkedStyle!!.addMultiple(count)
     }
 
     override fun removeMultiple(count: Int) {
-        linkedStyle?.removeMultiple(count)
+        linkedStyle!!.removeMultiple(count)
     }
 
     override fun getLoadedStyle() = linkedStyle
 
     override fun changeStatusBatch(indexes: IntArray, status: Boolean) {
-        linkedStyle ?: return
         indexes.forEach {
             linkedStyle!!.setSingleStatus(it, status)
         }
@@ -32,7 +31,7 @@ class GroupProgressSequencedHelper(
     fun syncProgressFromServer(current: Int) {
         this.current = current.coerceIn(0, progressMaxTick)
         val targetCount = (current.toDouble() / progressMaxTick * maxCount).roundToInt()
-        linkedStyle?.let {
+        linkedStyle!!.let {
             val currentActive = it.particleDisplayedCount
             when {
                 targetCount > currentActive ->
@@ -45,9 +44,7 @@ class GroupProgressSequencedHelper(
     }
 
     override fun loadControler(controler: Controlable<*>) {
-        if (controler !is SequencedParticleGroup) {
-            return
-        }
+        controler as SequencedParticleGroup
         linkedStyle = controler
     }
 }

@@ -24,8 +24,8 @@ interface ParticleEmitters {
     var uuid: UUID
     var cancelled: Boolean
     var playing: Boolean
-
     fun getEmittersID(): String
+
     /**
      * 发射粒子
      * 服务器发包
@@ -38,6 +38,7 @@ interface ParticleEmitters {
     fun tick()
 
     fun spawnParticle()
+
     /**
      * 更新发射器属性状态
      * 服务器发包到客户端

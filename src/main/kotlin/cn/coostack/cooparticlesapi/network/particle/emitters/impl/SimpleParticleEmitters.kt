@@ -180,6 +180,7 @@ class SimpleParticleEmitters(
         actualPositions.forEach {
             val newData = templateData.clone()
             val v = shootType.getDefaultDirection(newData.velocity, tick, it, currentPos)
+                .normalize().multiply(newData.speed)
             newData.velocity = v
             spawnParticle(world, it, newData)
         }

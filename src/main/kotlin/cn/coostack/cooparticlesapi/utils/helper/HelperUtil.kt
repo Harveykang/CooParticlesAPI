@@ -11,21 +11,26 @@ import cn.coostack.cooparticlesapi.utils.helper.impl.StyleProgressSequencedHelpe
 import cn.coostack.cooparticlesapi.utils.helper.impl.StyleScaleHelper
 import cn.coostack.cooparticlesapi.utils.helper.impl.StyleStatusHelper
 
+/**
+ * 所有Helper使用规范
+ * 必须在构造函数内调用Helper.loadControler()方法
+ * 否则无法使用此类!
+ */
 object HelperUtil {
 
-    fun sequencedStyle(maxCount: Int, progressMaxTick: Int): ProgressSequencedHelper {
+    fun sequencedStyle(maxCount: Int, progressMaxTick: Int): StyleProgressSequencedHelper {
         return StyleProgressSequencedHelper(
             maxCount, progressMaxTick,
         )
     }
 
-    fun sequencedGroup(maxCount: Int, progressMaxTick: Int): ProgressSequencedHelper {
+    fun sequencedGroup(maxCount: Int, progressMaxTick: Int): GroupProgressSequencedHelper {
         return GroupProgressSequencedHelper(
             maxCount, progressMaxTick,
         )
     }
 
-    fun scaleStyle(minScale: Double, maxScale: Double, scaleTick: Int): ScaleHelper =
+    fun scaleStyle(minScale: Double, maxScale: Double, scaleTick: Int): StyleScaleHelper =
         StyleScaleHelper(minScale, maxScale, scaleTick)
 
     fun bezierValueScaleStyle(
@@ -43,21 +48,21 @@ object HelperUtil {
         scaleTick: Int,
         c1: RelativeLocation,
         c2: RelativeLocation
-    ): BezierValueScaleHelper {
+    ): GroupBezierValueScaleHelper {
         return GroupBezierValueScaleHelper(scaleTick, minScale, maxScale, c1, c2)
     }
 
-    fun scaleGroup(minScale: Double, maxScale: Double, scaleTick: Int): ScaleHelper =
+    fun scaleGroup(minScale: Double, maxScale: Double, scaleTick: Int): GroupScaleHelper =
         GroupScaleHelper(minScale, maxScale, scaleTick)
 
-    fun styleStatus(closedInterval: Int): StatusHelper =
+    fun styleStatus(closedInterval: Int): StyleStatusHelper =
         StyleStatusHelper().apply { this.closedInternal = closedInterval }
 
-    fun alphaStyle(minAlpha: Double, maxAlpha: Double, alphaTick: Int): AlphaHelper {
+    fun alphaStyle(minAlpha: Double, maxAlpha: Double, alphaTick: Int): StyleAlphaHelper {
         return StyleAlphaHelper(minAlpha, maxAlpha, alphaTick)
     }
 
-    fun particleAlpha(minAlpha: Double, maxAlpha: Double, alphaTick: Int): AlphaHelper {
+    fun particleAlpha(minAlpha: Double, maxAlpha: Double, alphaTick: Int): ParticleAlphaHelper {
         return ParticleAlphaHelper(minAlpha, maxAlpha, alphaTick)
     }
 

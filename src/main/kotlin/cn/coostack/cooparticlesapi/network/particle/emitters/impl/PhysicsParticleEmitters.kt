@@ -215,7 +215,12 @@ class PhysicsParticleEmitters(
         val actualPositions = shootType.getPositions(currentPos, tick, actualCount)
         actualPositions.forEach {
             val newData = templateData.clone()
-            val v = shootType.getDefaultDirection(newData.velocity, tick, it, currentPos)
+            val v = shootType.getDefaultDirection(
+                newData.velocity,
+                tick,
+                it,
+                currentPos
+            ).normalize().multiply(newData.speed)
             newData.velocity = v
             spawnParticle(world, it, newData)
         }

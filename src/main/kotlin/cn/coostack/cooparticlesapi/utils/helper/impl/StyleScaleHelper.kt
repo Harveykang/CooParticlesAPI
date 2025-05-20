@@ -8,9 +8,7 @@ class StyleScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int) :
     ScaleHelper(minScale, maxScale, scaleTick) {
     lateinit var group: ParticleGroupStyle
     override fun loadControler(controler: Controlable<*>) {
-        if (controler !is ParticleGroupStyle) {
-            return
-        }
+        controler as ParticleGroupStyle
         group = controler
         group.scale(minScale)
     }
@@ -27,6 +25,6 @@ class StyleScaleHelper(minScale: Double, maxScale: Double, scaleTick: Int) :
     }
 
     override fun scale(scale: Double) {
-        group.scale(scale.coerceIn(minScale,maxScale))
+        group.scale(scale.coerceIn(minScale, maxScale))
     }
 }

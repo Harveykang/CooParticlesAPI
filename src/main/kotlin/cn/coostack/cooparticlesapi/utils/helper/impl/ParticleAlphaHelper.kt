@@ -17,7 +17,7 @@ class ParticleAlphaHelper(minAlpha: Double, maxAlpha: Double, alphaTick: Int) :
     }
 
     override fun setAlpha(alpha: Double) {
-        controler?.particle?.particleAlpha = alpha.toFloat()
+        controler!!.particle.particleAlpha = alpha.toFloat()
     }
 
     override fun loadControler(controler: Controlable<*>) {

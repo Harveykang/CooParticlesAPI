@@ -16,9 +16,7 @@ class GroupBezierValueScaleHelper(
     BezierValueScaleHelper(scaleTick, minScale, maxScale, controlPoint1, controlPoint2) {
     lateinit var group: ControlableParticleGroup
     override fun loadControler(controler: Controlable<*>) {
-        if (controler !is ControlableParticleGroup) {
-            return
-        }
+        controler as ControlableParticleGroup
         group = controler
         group.scale(minScale)
     }

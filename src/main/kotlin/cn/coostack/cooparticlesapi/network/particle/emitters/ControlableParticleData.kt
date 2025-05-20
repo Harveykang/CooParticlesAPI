@@ -32,6 +32,7 @@ open class ControlableParticleData {
             buf.writeString(data.textureSheet.toString())
             buf.writeString(data.effect::class.java.name)
             buf.writeUuid(data.uuid)
+            buf.writeDouble(data.speed)
 //            val effectPacketCodec =
 //                data.effect.getPacketCodec() as PacketCodec<RegistryByteBuf, ControlableParticleEffect>
 //            effectPacketCodec.encode(buf, data.effect)
@@ -55,6 +56,7 @@ open class ControlableParticleData {
                 effectUUID,
                 Class.forName(effectType) as Class<ControlableParticleEffect>
             )
+            val speed = buf.readDouble()
 //            val effect = ParticleTypes.PACKET_CODEC.decode(buf) as ControlableParticleEffect
             return ControlableParticleData().apply {
                 this.uuid = uuid
@@ -67,6 +69,7 @@ open class ControlableParticleData {
                 this.maxAge = maxAge
                 this.textureSheet = this.textureSheetFromString(textureSheet)
                 this.effect = effect
+                this.speed = speed
             }
         }
     }
@@ -82,6 +85,10 @@ open class ControlableParticleData {
     var effect: ControlableParticleEffect = TestEndRodEffect(uuid)
     var textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
 
+    /**
+     * 粒子移动速度
+     */
+    var speed: Double = 1.0
     fun textureSheetFromString(sheet: String): ParticleTextureSheet? {
         return when (sheet) {
             ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.toString() -> ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
@@ -99,7 +106,7 @@ open class ControlableParticleData {
     }
 
 
-    fun clone(): ControlableParticleData {
+    open fun clone(): ControlableParticleData {
         return ControlableParticleData().also {
             it.uuid = UUID.randomUUID()
             it.velocity = this.velocity
@@ -112,6 +119,7 @@ open class ControlableParticleData {
             it.maxAge = this.maxAge
             it.effect = this.effect.clone()
             it.textureSheet = this.textureSheet
+            it.speed = this.speed
         }
     }
 }

@@ -8,9 +8,6 @@ class StyleStatusHelper : StatusHelper() {
     lateinit var group: ParticleGroupStyle
     private var init = false
     override fun changeStatus(status: Int) {
-        if (!::group.isInitialized) {
-            return
-        }
         // 客户端无需同步
         if (group.client) {
             return
@@ -18,12 +15,6 @@ class StyleStatusHelper : StatusHelper() {
         group.change(toArgsPairs().toMap())
     }
 
-    override fun setClosedAge() {
-        if (!::group.isInitialized) {
-            return
-        }
-
-    }
 
     override fun initHelper() {
         if (!::group.isInitialized) {

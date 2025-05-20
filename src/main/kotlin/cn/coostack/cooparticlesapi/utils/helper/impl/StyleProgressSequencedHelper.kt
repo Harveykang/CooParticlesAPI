@@ -11,17 +11,17 @@ class StyleProgressSequencedHelper(
 ) : ProgressSequencedHelper(maxCount, progressMaxTick) {
     private var linkedStyle: SequencedParticleStyle? = null
     override fun addMultiple(count: Int) {
-        linkedStyle?.addMultiple(count)
+        linkedStyle!!.addMultiple(count)
     }
 
     override fun removeMultiple(count: Int) {
-        linkedStyle?.removeMultiple(count)
+        linkedStyle!!.removeMultiple(count)
     }
 
     override fun getLoadedStyle() = linkedStyle
 
     override fun changeStatusBatch(indexes: IntArray, status: Boolean) {
-        linkedStyle?.changeParticlesStatus(indexes, status)
+        linkedStyle!!.changeParticlesStatus(indexes, status)
     }
 
 
@@ -29,7 +29,7 @@ class StyleProgressSequencedHelper(
     fun syncProgressFromServer(current: Int) {
         this.current = current.coerceIn(0, progressMaxTick)
         val targetCount = (current.toDouble() / progressMaxTick * maxCount).roundToInt()
-        linkedStyle?.let {
+        linkedStyle!!.let {
             val currentActive = it.displayedParticleCount
             when {
                 targetCount > currentActive ->

@@ -44,18 +44,11 @@ abstract class StatusHelper : ParticleHelper {
         val enter = status.coerceIn(1, 2)
         this.displayStatus = enter
 
-        if (enter == 2) {
-            setClosedAge()
-        }
         changeStatus(status)
     }
 
     fun setStatus(status: Status) {
         this.displayStatus = status.id
-
-        if (status == Status.DISABLE) {
-            setClosedAge()
-        }
         changeStatus(status.id)
     }
 
@@ -80,7 +73,6 @@ abstract class StatusHelper : ParticleHelper {
      */
     abstract fun changeStatus(status: Int)
 
-    abstract fun setClosedAge()
     abstract fun initHelper()
 
 }
