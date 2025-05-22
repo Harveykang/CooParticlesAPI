@@ -31,7 +31,7 @@ object ParticleEmittersManager {
     /**
      * 客户端可视
      */
-    val clientEmitters = HashMap<UUID, ParticleEmitters>()
+    val clientEmitters = ConcurrentHashMap<UUID, ParticleEmitters>()
 
     internal fun getCodecFromID(id: String): PacketCodec<RegistryByteBuf, ParticleEmitters>? {
         return emittersCodec[id]
