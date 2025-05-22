@@ -31,7 +31,7 @@ public abstract class ParticleManagerMixin {
             Map<ParticleTextureSheet, Queue<Particle>> particles = this.getParticles();
             Queue<Particle> queue1 = particles.computeIfAbsent(particle.getType(),
                 sheet -> EvictingQueue.create(limit));
-            // limit 不会改变，这里可以直接判断
+            // limit 在程序生命周期内不会改变，这里可以直接判断
             if (queue1.size() < limit) {
                 queue1.add(particle);
             } else {
