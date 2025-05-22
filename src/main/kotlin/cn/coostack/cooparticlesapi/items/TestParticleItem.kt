@@ -4,13 +4,19 @@ import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.barrages.HitBox
 import cn.coostack.cooparticlesapi.network.particle.emitters.ControlableParticleData
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.DefendClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.ExampleClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.ExplodeClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.FireClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.LightningClassParticleEmitters
 import cn.coostack.cooparticlesapi.network.particle.emitters.impl.PhysicsParticleEmitters
-import cn.coostack.cooparticlesapi.network.particle.emitters.impl.PhysicsParticleEmitters.Companion.EARTH_GRAVITY
-import cn.coostack.cooparticlesapi.network.particle.emitters.impl.PhysicsParticleEmitters.Companion.SEA_AIR_DENSITY
-import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootType
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
+import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
+import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkEffect
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodEffect
+import cn.coostack.cooparticlesapi.utils.CameraUtil
 import cn.coostack.cooparticlesapi.utils.Math3DUtil
+import net.minecraft.client.particle.ParticleTextureSheet
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -18,6 +24,7 @@ import net.minecraft.util.Hand
 import net.minecraft.util.TypedActionResult
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
+import java.util.UUID
 
 class TestParticleItem(settings: Settings) : Item(settings) {
 
@@ -25,7 +32,98 @@ class TestParticleItem(settings: Settings) : Item(settings) {
         if (world.isClient) {
             return TypedActionResult.success(user.getStackInHand(hand))
         }
-//        val serverGroup = ScaleCircleGroupServer(user.uuid)
+        testLightning(world, user)
+//        CameraUtil.randomCamera()
+//        testFire(world, user)
+        // 线性阻力
+        return super.use(world, user, hand)
+    }
+
+
+    private fun testDefend(world: World, user: PlayerEntity) {
+        val example = DefendClassParticleEmitters(user.uuid, user.eyePos, world)
+            .also {
+                it.maxTick = 240
+                it.templateData.apply {
+                    maxAge = 1
+                    textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                    color = Math3DUtil.colorOf(100, 100, 210)
+                    effect = TestEndRodEffect(uuid)
+                }
+            }
+
+        ParticleEmittersManager.spawnEmitters(example)
+    }
+
+    private fun testLightning(world: World, user: PlayerEntity) {
+        val example = LightningClassParticleEmitters(user.eyePos, world)
+            .also {
+                it.maxTick = 120
+                it.templateData.apply {
+                    maxAge = 20
+                    textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                    color = Math3DUtil.colorOf(100, 100, 210)
+                    effect = TestEndRodEffect(uuid)
+                }
+            }
+
+        ParticleEmittersManager.spawnEmitters(example)
+    }
+
+    private fun testExplode(world: World, user: PlayerEntity) {
+        val example = ExplodeClassParticleEmitters(user.eyePos, world)
+            .also {
+                it.maxTick = 10
+                it.templateData.apply {
+                    maxAge = 60
+                    textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                    color = Math3DUtil.colorOf(255, 255, 255)
+                    effect = TestEndRodEffect(uuid)
+                }
+            }
+
+        ParticleEmittersManager.spawnEmitters(example)
+    }
+
+    private fun testFire(world: World, user: PlayerEntity) {
+        val example = FireClassParticleEmitters(
+            user.uuid, user.eyePos, world
+        ).also {
+            it.maxTick = 120
+            it.fireSize = 1.0
+            it.fireForce = 0.5
+            it.templateData.apply {
+                maxAge = 60
+                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                color = Math3DUtil.colorOf(255, 255, 255)
+                effect = ControlableCloudEffect(uuid)
+            }
+        }
+        ParticleEmittersManager.spawnEmitters(example)
+
+    }
+
+
+    private fun testClassEmitters(world: World, user: PlayerEntity) {
+        val example = ExampleClassParticleEmitters(
+            user.eyePos, world
+        ).also {
+            it.moveDirection = user.rotationVector.normalize().multiply(0.5)
+            it.templateData.apply {
+                maxAge = 20
+                textureSheet = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT
+                color = Math3DUtil.colorOf(217, 137, 146)
+                effect = ControlableCloudEffect(uuid)
+            }
+        }
+
+        ParticleEmittersManager.spawnEmitters(example)
+
+    }
+
+
+    private fun testPhysicsEmitters(world: World, user: PlayerEntity, hand: Hand) {
+        //        val serverGroup = ScaleCircleGroupServer(user.uuid)
 //        ServerParticleGroupManager.addParticleGroup(
 //            serverGroup, user.pos, world as ServerWorld
 //        )
@@ -79,7 +177,6 @@ class TestParticleItem(settings: Settings) : Item(settings) {
 //            simple.templateData.size += 0.05f
             ParticleEmittersManager.updateEmitters(simple)
         }
-        return super.use(world, user, hand)
     }
 
 }

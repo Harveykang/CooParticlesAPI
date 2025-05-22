@@ -2,6 +2,11 @@ package cn.coostack.cooparticlesapi.network.particle.emitters
 
 import cn.coostack.cooparticlesapi.CooParticleAPI
 import cn.coostack.cooparticlesapi.network.packet.PacketParticleEmittersS2C
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.DefendClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.ExampleClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.ExplodeClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.FireClassParticleEmitters
+import cn.coostack.cooparticlesapi.network.particle.emitters.impl.LightningClassParticleEmitters
 import cn.coostack.cooparticlesapi.network.particle.emitters.impl.PhysicsParticleEmitters
 import cn.coostack.cooparticlesapi.network.particle.emitters.impl.SimpleParticleEmitters
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
@@ -36,6 +41,11 @@ object ParticleEmittersManager {
     init {
         register(PhysicsParticleEmitters.ID, PhysicsParticleEmitters.CODEC)
         register(SimpleParticleEmitters.ID, SimpleParticleEmitters.CODEC)
+        register(ExampleClassParticleEmitters.ID, ExampleClassParticleEmitters.CODEC)
+        register(FireClassParticleEmitters.ID, FireClassParticleEmitters.CODEC)
+        register(ExplodeClassParticleEmitters.ID, ExplodeClassParticleEmitters.CODEC)
+        register(LightningClassParticleEmitters.ID, LightningClassParticleEmitters.CODEC)
+        register(DefendClassParticleEmitters.ID, DefendClassParticleEmitters.CODEC)
     }
 
     fun register(

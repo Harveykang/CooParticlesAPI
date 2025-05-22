@@ -11,6 +11,7 @@ import cn.coostack.cooparticlesapi.network.packet.PacketParticleStyleS2C
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroupManager
 import cn.coostack.cooparticlesapi.network.particle.ServerParticleGroup
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
+import cn.coostack.cooparticlesapi.network.particle.emitters.environment.wind.WindDirections
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootType
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
 import cn.coostack.cooparticlesapi.network.particle.style.ParticleStyleManager
@@ -27,8 +28,13 @@ import org.slf4j.LoggerFactory
 import cn.coostack.cooparticlesapi.particles.ControlableParticleEffect
 import cn.coostack.cooparticlesapi.particles.ControlableParticleEffectManager
 import cn.coostack.cooparticlesapi.particles.CooModParticles
+import cn.coostack.cooparticlesapi.test.entity.CooParticleEntities
+import cn.coostack.cooparticlesapi.test.entity.TestEntity
+import cn.coostack.cooparticlesapi.test.entity.TestPlayerEntity
 import com.ezylang.evalex.Expression
 import com.ezylang.evalex.config.ExpressionConfiguration
+import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
+import net.minecraft.entity.mob.MobEntity
 
 object CooParticleAPI : ModInitializer {
     val logger = LoggerFactory.getLogger("CooParticleAPI")!!
@@ -88,5 +94,15 @@ object CooParticleAPI : ModInitializer {
         PacketParticleS2C.init()
         PacketParticleStyleS2C.init()
         PacketParticleEmittersS2C.init()
+        WindDirections.init()
+        testEntity()
+    }
+
+    private fun testEntity() {
+        CooParticleEntities.init()
+
+        FabricDefaultAttributeRegistry.register(CooParticleEntities.TEST_ENTITY, TestEntity.createDefaultMobAttributes())
+        FabricDefaultAttributeRegistry.register(CooParticleEntities.TEST_PLAYER_ENTITY, TestPlayerEntity.createDefaultMobAttributes())
+
     }
 }

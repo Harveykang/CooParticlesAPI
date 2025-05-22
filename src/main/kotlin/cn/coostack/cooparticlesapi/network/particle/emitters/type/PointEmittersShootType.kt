@@ -6,6 +6,7 @@ import net.minecraft.util.math.Vec3d
 import kotlin.random.Random
 
 class PointEmittersShootType : EmittersShootType {
+    val random = Random(System.currentTimeMillis())
     companion object {
         @JvmStatic
         val CODEC: PacketCodec<RegistryByteBuf, EmittersShootType> =
@@ -26,13 +27,12 @@ class PointEmittersShootType : EmittersShootType {
     }
 
     override fun getPositions(origin: Vec3d, tick: Int, count: Int): List<Vec3d> {
-        return List(1) {
+        return List(count) {
             origin
         }
     }
 
     override fun getDefaultDirection(enter: Vec3d, tick: Int, pos: Vec3d, origin: Vec3d): Vec3d {
-        val random = Random(System.currentTimeMillis())
         if (enter.length() < 1e-7) {
             // 随机速度
             val p = Vec3d(

@@ -177,6 +177,27 @@ class PointsBuilder {
     )
 
 
+    fun addLightningNodes(end: RelativeLocation, count: Int): PointsBuilder = addWith {
+        getLightningEffectNodes(RelativeLocation(), end, count)
+    }
+
+    fun addLightningNodes(start: RelativeLocation, end: RelativeLocation, count: Int): PointsBuilder = addWith {
+        getLightningEffectNodes(start, end, count)
+    }
+
+    fun addLightningPoints(end: RelativeLocation, count: Int, preLineCount: Int): PointsBuilder = addWith {
+        getLightningEffectPoints(end, count, preLineCount)
+    }
+
+    fun addLightningPoints(
+        start: RelativeLocation,
+        end: RelativeLocation,
+        count: Int,
+        preLineCount: Int
+    ): PointsBuilder = addWith {
+        getLightningEffectPoints(end, count, preLineCount).onEach { it.add(start) }
+    }
+
     fun addLine(
         origin: Vec3d, direction: Vec3d, step: Double, count: Int
     ): PointsBuilder = addPoints(

@@ -3,6 +3,10 @@ package cn.coostack.cooparticlesapi.network.particle.emitters.impl
 import cn.coostack.cooparticlesapi.network.particle.emitters.ControlableParticleData
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmitters
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
+import cn.coostack.cooparticlesapi.network.particle.emitters.PhysicConstant
+import cn.coostack.cooparticlesapi.network.particle.emitters.environment.wind.GlobalWindDirection
+import cn.coostack.cooparticlesapi.network.particle.emitters.environment.wind.WindDirection
+import cn.coostack.cooparticlesapi.network.particle.emitters.environment.wind.WindDirections
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
 import cn.coostack.cooparticlesapi.particles.ParticleDisplayer
 import cn.coostack.cooparticlesapi.particles.control.ControlParticleManager
@@ -66,7 +70,7 @@ class PhysicsParticleEmitters(
     /**
      * 风力方向
      */
-    var wind: Vec3d = Vec3d.ZERO
+    var wind: WindDirection = GlobalWindDirection(Vec3d.ZERO)
 
     /**
      * 质量
@@ -75,10 +79,18 @@ class PhysicsParticleEmitters(
     var mass: Double = 1.0
 
     companion object {
-        const val EARTH_GRAVITY = 0.05
-        const val SEA_AIR_DENSITY = 1.225
-        const val DRAG_COEFFICIENT = 0.01
-        const val CROSS_SECTIONAL_AREA = 0.01
+        // 物理常量
+        @Deprecated("use PhysicContent")
+        const val EARTH_GRAVITY = PhysicConstant.EARTH_GRAVITY
+
+        @Deprecated("use PhysicContent")
+        const val SEA_AIR_DENSITY = PhysicConstant.SEA_AIR_DENSITY
+
+        @Deprecated("use PhysicContent")
+        const val DRAG_COEFFICIENT = PhysicConstant.DRAG_COEFFICIENT
+
+        @Deprecated("use PhysicContent")
+        const val CROSS_SECTIONAL_AREA = PhysicConstant.CROSS_SECTIONAL_AREA
         val ID = "physics-emitters"
         val CODEC: PacketCodec<RegistryByteBuf, ParticleEmitters> =
             PacketCodec.ofStatic<RegistryByteBuf, ParticleEmitters>(
@@ -96,7 +108,8 @@ class PhysicsParticleEmitters(
                     buf.writeDouble(data.gravity)
                     buf.writeDouble(data.airDensity)
                     buf.writeDouble(data.mass)
-                    buf.writeVec3d(data.wind)
+                    buf.writeString(data.wind.getID())
+                    data.wind.getCodec().encode(buf, data.wind)
                     buf.writeString(data.evalEmittersXWithT, 32767)
                     buf.writeString(data.evalEmittersYWithT, 32767)
                     buf.writeString(data.evalEmittersZWithT, 32767)
@@ -120,7 +133,9 @@ class PhysicsParticleEmitters(
                     val gravity = it.readDouble()
                     val airDensity = it.readDouble()
                     val mass = it.readDouble()
-                    val wind = it.readVec3d()
+                    val windID = it.readString()
+                    val from = WindDirections.getCodecFromID(windID)
+                    val wind = from.decode(it)
                     val xE = it.readString(32767)
                     val yE = it.readString(32767)
                     val zE = it.readString(32767)
@@ -164,6 +179,7 @@ class PhysicsParticleEmitters(
     }
 
     override fun start() {
+        wind.loadEmitters(this)
         if (playing) return
         playing = true
     }
@@ -244,7 +260,7 @@ class PhysicsParticleEmitters(
             teleportTo(
                 this.pos.add(data.velocity)
             )
-            updatePhysics(data)
+            updatePhysics(this.pos, data)
             if (currentAge++ >= maxAge) {
                 markDead()
             }
@@ -252,7 +268,7 @@ class PhysicsParticleEmitters(
         displayer.display(pos, world)
     }
 
-    private fun updatePhysics(data: ControlableParticleData) {
+    private fun updatePhysics(pos: Vec3d, data: ControlableParticleData) {
         val m = mass / 1000
         val v = data.velocity
         val speed = v.length()
@@ -264,14 +280,10 @@ class PhysicsParticleEmitters(
         } else {
             Vec3d.ZERO
         }
-        val windForce = if (wind.lengthSquared() > 0) {
-            val relativeWind = wind.subtract(v)
-            val windMagnitude = 0.5 * airDensity * DRAG_COEFFICIENT *
-                    CROSS_SECTIONAL_AREA * relativeWind.lengthSquared() * 0.05
-            relativeWind.normalize().multiply(windMagnitude)
-        } else {
-            Vec3d.ZERO
-        }
+        val windForce = WindDirections.handleWindForce(
+            wind,pos,
+            airDensity, DRAG_COEFFICIENT, CROSS_SECTIONAL_AREA, v
+        )
 
         val a = gravityForce
             .add(airResistanceForce)

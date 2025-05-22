@@ -292,6 +292,14 @@ abstract class ControlableParticle(
         controler.doTick()
         prevPos = this.pos
         if (update) {
+            if (!minecraftTick) {
+                this.boundingBox = Box.of(
+                    this.pos,
+                    this.boundingBox.maxX - this.boundingBox.minX,
+                    this.boundingBox.maxY - this.boundingBox.minY,
+                    this.boundingBox.maxZ - this.boundingBox.minZ,
+                )
+            }
             prevPos = this.pos
             this.pos = lastPreview
             update = false

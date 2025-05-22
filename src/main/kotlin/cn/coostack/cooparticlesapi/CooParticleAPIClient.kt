@@ -20,6 +20,13 @@ import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkEffect
 import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkParticle
 import cn.coostack.cooparticlesapi.particles.impl.ControlableFlashParticle
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodParticle
+import cn.coostack.cooparticlesapi.test.entity.CooParticleEntities
+import cn.coostack.cooparticlesapi.test.entity.CooParticlesEntityLayers
+import cn.coostack.cooparticlesapi.test.entity.TestEntity
+import cn.coostack.cooparticlesapi.test.entity.TestEntityModel
+import cn.coostack.cooparticlesapi.test.entity.TestEntityRenderer
+import cn.coostack.cooparticlesapi.test.entity.TestPlayerEntityRenderer
+import cn.coostack.cooparticlesapi.test.entity.TestPlayerModel
 import cn.coostack.cooparticlesapi.test.particle.client.BarrierSwordGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.ScaleCircleGroupClient
 import cn.coostack.cooparticlesapi.test.particle.client.SequencedMagicCircleClient
@@ -31,6 +38,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry
 
 object CooParticleAPIClient : ClientModInitializer {
 
@@ -80,6 +89,7 @@ object CooParticleAPIClient : ClientModInitializer {
         ParticleStyleManager.register(ExampleStyle::class.java, ExampleStyle.Provider())
         ParticleStyleManager.register(ExampleSequencedStyle::class.java, ExampleSequencedStyle.Provider())
         CooModParticles.reg()
+        testEntity()
     }
 
 
@@ -103,4 +113,17 @@ object CooParticleAPIClient : ClientModInitializer {
     }
 
 
+    private fun testEntity() {
+        EntityModelLayerRegistry.registerModelLayer(
+            CooParticlesEntityLayers.TEST_ENTITY_LAYER,
+            TestEntityModel<TestEntity>::getTexturedModelData
+        )
+        EntityRendererRegistry.register(CooParticleEntities.TEST_ENTITY, ::TestEntityRenderer)
+
+        EntityModelLayerRegistry.registerModelLayer(
+            CooParticlesEntityLayers.TEST_PLAYER_ENTITY_LAYER,
+            TestPlayerModel::getTexturedModelData
+        )
+        EntityRendererRegistry.register(CooParticleEntities.TEST_PLAYER_ENTITY, ::TestPlayerEntityRenderer)
+    }
 }

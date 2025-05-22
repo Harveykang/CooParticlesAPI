@@ -46,7 +46,6 @@ class BoxEmittersShootType(val box: HitBox) : EmittersShootType {
 
     val random = Random(System.currentTimeMillis())
     override fun getPositions(origin: Vec3d, tick: Int, count: Int): List<Vec3d> {
-
         return List(count) {
             val x = random.nextDouble(
                 box.x1,

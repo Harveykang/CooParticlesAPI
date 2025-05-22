@@ -1,21 +1,62 @@
 package cn.coostack.cooparticlesapi.utils
 
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.util.math.Vec3d
-import org.joml.Quaterniond
-import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.ArrayList
 import kotlin.math.*
 import kotlin.random.Random
 
 object Math3DUtil {
+    private val random = Random(System.currentTimeMillis())
 
     /**
      * 将RGB值转换为Minecraft粒子使用的 rgb值(/255)
      */
     fun colorOf(r: Int, g: Int, b: Int): Vector3f {
         return Vector3f(r.toFloat() / 255, g.toFloat() / 255, b.toFloat() / 255)
+    }
+
+    /**
+     * 闪电
+     */
+    fun getLightningEffectNodes(
+        start: RelativeLocation, end: RelativeLocation, counts: Int
+    ): List<RelativeLocation> {
+        // 二分 start - > end 位置
+        // 先获取中点
+        val mid = start + (end - start).multiply(0.5)
+        // 让中点进行偏移
+        val len = end.distance(start)
+        val offsetStep = len / 4
+        mid.x += random.nextDouble(-offsetStep, offsetStep)
+        mid.y += random.nextDouble(-offsetStep, offsetStep)
+        mid.z += random.nextDouble(-offsetStep, offsetStep)
+        val res = mutableListOf(mid)
+        if (counts <= 1) {
+            return res
+        }
+        val left = getLightningEffectNodes(start, mid, counts - 1)
+        val right = getLightningEffectNodes(mid, end, counts - 1)
+        // 合并点集合
+        return left + right
+    }
+
+    /**
+     * @param end 闪电效果的终点
+     * @param counts 二分次数
+     */
+    fun getLightningEffectPoints(end: RelativeLocation, counts: Int, preLineCount: Int): List<RelativeLocation> {
+        val nodes = getLightningEffectNodes(RelativeLocation(), end, counts)
+        val res = ArrayList<RelativeLocation>()
+        var i = 0
+        while (i < nodes.size - 1) {
+            val current = nodes[i]
+            val next = nodes[i + 1]
+            // 连线
+            res.addAll(getLineLocations(current, next, preLineCount))
+            i ++
+        }
+        return res
     }
 
     /**
