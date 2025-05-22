@@ -2,8 +2,8 @@
   "required": true,
   "package": "cn.coostack.cooparticlesapi.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-  ],
+  "mixins": [],
+  "plugin": "cn.coostack.cooparticlesapi.mixin.plugin.CooParticleMixinLoaderPlugin",
   "injectors": {
     "defaultRequire": 1
   },
