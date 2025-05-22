@@ -2,7 +2,6 @@ package cn.coostack.cooparticlesapi.particles.control
 
 import cn.coostack.cooparticlesapi.particles.Controlable
 import cn.coostack.cooparticlesapi.particles.ControlableParticle
-import cn.coostack.cooparticlesapi.utils.Math3DUtil
 import cn.coostack.cooparticlesapi.utils.RelativeLocation
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -67,6 +66,10 @@ class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticl
         invokeQueue.forEach {
             it(particle)
         }
+        // 防呆用的
+        if (particle.death) {
+            ControlParticleManager.removeControl(uuid)
+        }
     }
 
     fun rotateParticleTo(target: RelativeLocation) {
@@ -102,6 +105,9 @@ class ParticleControler(private val uuid: UUID) : Controlable<ControlableParticl
         particle.teleportTo(x, y, z)
     }
 
+    /**
+     * @see ControlableParticle.markDead()
+     */
     override fun remove() {
         particle.markDead()
     }

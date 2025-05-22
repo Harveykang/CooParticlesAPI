@@ -16,6 +16,10 @@ object ControlParticleManager {
         return controls[uuid]
     }
 
+    internal fun removeControl(uuid: UUID) {
+        controls.remove(uuid)
+    }
+
     fun createControl(uuid: UUID): ParticleControler {
         val controler = ParticleControler(uuid)
         controls[uuid] = controler
