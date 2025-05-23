@@ -3,13 +3,18 @@ package cn.coostack.cooparticlesapi.mixin;
 
 import cn.coostack.cooparticlesapi.config.APIConfigManager;
 import com.google.common.collect.EvictingQueue;
+import net.minecraft.client.particle.EmitterParticle;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
+import net.minecraft.particle.ParticleGroup;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
 import java.util.Queue;
@@ -21,6 +26,11 @@ public abstract class ParticleManagerMixin {
 
     @Shadow
     private Queue<Particle> newParticles;
+
+    @Shadow
+    protected abstract void addTo(ParticleGroup group, int count);
+
+    @Shadow private Queue<EmitterParticle> newEmitterParticles;
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Ljava/util/Queue;poll()Ljava/lang/Object;"))
     public Object changeMaxParticles(Queue<Object> queue) {
@@ -35,9 +45,25 @@ public abstract class ParticleManagerMixin {
                 queue1.add(particle);
             } else {
                 // 这样驱逐队列就没用了但是可以避免内存泄漏
-                particle.markDead();
+                onEvict(particle);
             }
         }
         return null;
+    }
+
+    @Inject(method = "clearParticles", at = @At("HEAD"))
+    public void clearParticles(CallbackInfo ci) {
+        particles.values().forEach(q -> q.forEach(this::onEvict));
+        newParticles.forEach(this::onEvict);
+        newEmitterParticles.forEach(this::onEvict);
+    }
+
+    @Unique
+    private void onEvict(Particle p) {
+        // 这是原版 bug，但本模组会放大这个问题所以有必要修复一下
+        if (p.isAlive()) {
+            p.markDead();
+            p.getGroup().ifPresent(group -> addTo(group, -1));
+        }
     }
 }
