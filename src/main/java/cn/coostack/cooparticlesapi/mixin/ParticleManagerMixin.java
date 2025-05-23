@@ -7,7 +7,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -16,22 +16,21 @@ import java.util.Queue;
 
 @Mixin(ParticleManager.class)
 public abstract class ParticleManagerMixin {
-    @Accessor("newParticles")
-    public abstract Queue<Particle> getNewParticles();
+    @Shadow
+    private Map<ParticleTextureSheet, Queue<Particle>> particles;
 
-    @Accessor("particles")
-    public abstract Map<ParticleTextureSheet, Queue<Particle>> getParticles();
+    @Shadow
+    private Queue<Particle> newParticles;
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Ljava/util/Queue;poll()Ljava/lang/Object;"))
     public Object changeMaxParticles(Queue<Object> queue) {
         // 不需要判断 EnabledParticleCountInject 了，已在注入时判断，关这个一般都是因为会注入失败，所以不用担心
         Particle particle;
         int limit = APIConfigManager.getConfig().getParticleCountLimit();
-        while ((particle = this.getNewParticles().poll()) != null) {
-            Map<ParticleTextureSheet, Queue<Particle>> particles = this.getParticles();
+        while ((particle = newParticles.poll()) != null) {
             Queue<Particle> queue1 = particles.computeIfAbsent(particle.getType(),
-                sheet -> EvictingQueue.create(limit));
-            // limit 不会改变，这里可以直接判断
+                    sheet -> EvictingQueue.create(limit));
+            // limit 在程序生命周期内不会改变，这里可以直接判断
             if (queue1.size() < limit) {
                 queue1.add(particle);
             } else {
