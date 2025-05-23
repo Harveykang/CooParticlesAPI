@@ -82,6 +82,12 @@ class CooScheduler {
             private set
 
         private var looped = false
+        private var finishCallable: Runnable = Runnable {}
+
+        fun setFinishCallback(callable: Runnable): TickRunnable {
+            this.finishCallable = callable
+            return this
+        }
 
         /**
          * 每singleDelay tick执行一次
@@ -119,6 +125,7 @@ class CooScheduler {
                 }
                 if (currentTick >= maxTick) {
                     canceled = true
+                    finishCallable.run()
                     return
                 }
                 return
@@ -133,6 +140,7 @@ class CooScheduler {
             }
             if (currentTick++ >= singleDelay) {
                 runnable(this)
+                finishCallable.run()
                 canceled = true
             }
             return

@@ -1,7 +1,6 @@
 package cn.coostack.cooparticlesapi.items
 
 import cn.coostack.cooparticlesapi.CooParticleAPI
-import cn.coostack.cooparticlesapi.barrages.HitBox
 import cn.coostack.cooparticlesapi.network.particle.emitters.ControlableParticleData
 import cn.coostack.cooparticlesapi.network.particle.emitters.ParticleEmittersManager
 import cn.coostack.cooparticlesapi.network.particle.emitters.impl.DefendClassParticleEmitters
@@ -12,7 +11,6 @@ import cn.coostack.cooparticlesapi.network.particle.emitters.impl.LightningClass
 import cn.coostack.cooparticlesapi.network.particle.emitters.impl.PhysicsParticleEmitters
 import cn.coostack.cooparticlesapi.network.particle.emitters.type.EmittersShootTypes
 import cn.coostack.cooparticlesapi.particles.impl.ControlableCloudEffect
-import cn.coostack.cooparticlesapi.particles.impl.ControlableFireworkEffect
 import cn.coostack.cooparticlesapi.particles.impl.TestEndRodEffect
 import cn.coostack.cooparticlesapi.utils.CameraUtil
 import cn.coostack.cooparticlesapi.utils.Math3DUtil
@@ -22,9 +20,8 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Hand
 import net.minecraft.util.TypedActionResult
-import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import java.util.UUID
+import kotlin.math.PI
 
 class TestParticleItem(settings: Settings) : Item(settings) {
 
@@ -33,7 +30,7 @@ class TestParticleItem(settings: Settings) : Item(settings) {
             return TypedActionResult.success(user.getStackInHand(hand))
         }
         testLightning(world, user)
-//        CameraUtil.randomCamera()
+//        CameraUtil.startShakeCamera(240, 0.25)
 //        testFire(world, user)
         // 线性阻力
         return super.use(world, user, hand)

@@ -1,39 +1,38 @@
 package cn.coostack.cooparticlesapi.utils
 
 import cn.coostack.cooparticlesapi.CooParticleAPI
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.client.render.Camera
-import net.minecraft.entity.player.PlayerEntity
-import java.awt.Canvas
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import kotlin.random.Random
 
+@Environment(EnvType.CLIENT)
 object CameraUtil {
-    //public static float nextFloat(Random random, float min, float max) {
-    //       return min >= max ? min : random.nextFloat() * (max - min) + min;
-    //    }
-    //
-    //    @SubscribeEvent
-    //    public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
-    //        float random = nextFloat(new Random(), -1.0F, 1.0F);
-    //        setAngles(event, event.getPitch() + random, event.getRoll() + random, event.getYaw() + random);
-    //    }
-    //
-    //    public static void setAngles(ViewportEvent.ComputeCameraAngles event, float pitch, float roll, float yaw) {
-    //        event.setPitch(pitch);
-    //        event.setRoll(roll);
-    //        event.setYaw(yaw);
-    //    }
+    var currentYawOffset = 0f
+    var currentPitchOffset = 0f
 
-    fun randomCamera() {
-        val camera = MinecraftClient.getInstance().gameRenderer.camera
+    var currentXOffset = 0.0
+    var currentYOffset = 0.0
+    var currentZOffset = 0.0
+
+    /**
+     * @param tick 修改相机的位置
+     */
+    fun startShakeCamera(
+        tick: Int, amplitude: Double
+    ) {
         val random = Random((System.currentTimeMillis()))
-        CooParticleAPI.scheduler.runTaskTimerMaxTick(40) {
-            camera.rotation.rotateXYZ(
-                random.nextDouble(-1.0, 1.0).toFloat(),
-                random.nextDouble(-1.0, 1.0).toFloat(),
-                random.nextDouble(-1.0, 1.0).toFloat(),
-            )
+        CooParticleAPI.scheduler.runTaskTimerMaxTick(tick) {
+//            currentYawOffset = random.nextDouble(-amplitude, amplitude).toFloat()
+//            currentPitchOffset = random.nextDouble(-amplitude, amplitude).toFloat()
+            this.currentXOffset = random.nextDouble(-amplitude, amplitude)
+            this.currentYOffset = random.nextDouble(-amplitude, amplitude)
+            this.currentZOffset = random.nextDouble(-amplitude, amplitude)
+        }.setFinishCallback {
+            this.currentYawOffset = 0f
+            this.currentPitchOffset = 0f
+            this.currentXOffset = 0.0
+            this.currentYOffset = 0.0
+            this.currentZOffset = 0.0
         }
     }
 }
