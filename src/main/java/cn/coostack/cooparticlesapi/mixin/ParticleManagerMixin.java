@@ -24,18 +24,21 @@ public abstract class ParticleManagerMixin {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Ljava/util/Queue;poll()Ljava/lang/Object;"))
     public Object changeMaxParticles(Queue<Object> queue) {
-        if (APIConfigManager.getConfig().getEnabledParticleCountInject()) {
-            Particle particle;
-            while ((particle = this.getNewParticles().poll()) != null) {
-                Map<ParticleTextureSheet, Queue<Particle>> particles = this.getParticles();
-                particles.computeIfAbsent(particle.getType(),
-                                sheet -> EvictingQueue.create(APIConfigManager.getConfig().getParticleCountLimit()))
-                        .add(particle);
+        // 不需要判断 EnabledParticleCountInject 了，已在注入时判断，关这个一般都是因为会注入失败，所以不用担心
+        Particle particle;
+        int limit = APIConfigManager.getConfig().getParticleCountLimit();
+        while ((particle = this.getNewParticles().poll()) != null) {
+            Map<ParticleTextureSheet, Queue<Particle>> particles = this.getParticles();
+            Queue<Particle> queue1 = particles.computeIfAbsent(particle.getType(),
+                sheet -> EvictingQueue.create(limit));
+            // limit 不会改变，这里可以直接判断
+            if (queue1.size() < limit) {
+                queue1.add(particle);
+            } else {
+                // 这样驱逐队列就没用了但是可以避免内存泄漏
+                particle.markDead();
             }
-            return null;
-        } else {
-            // 恢复原来的功能
-            return this.getNewParticles().poll();
         }
+        return null;
     }
 }

@@ -130,8 +130,10 @@ abstract class ControlableParticle(
      */
     var death: Boolean
         get() = dead
-        set(value) {
-            dead = value
+        set(value) = if (value) {
+            markDead()
+        } else {
+            dead = false
         }
 
     /**
@@ -313,6 +315,19 @@ abstract class ControlableParticle(
             currentAngleZ = lastRotate.z
             updateRotate = false
         }
+    }
+
+    /**
+     * @see ParticleControler.remove()
+     */
+    override fun markDead() {
+        super.markDead()
+        // FIXME 原版的驱逐队列满后不会调用 markDead，百分百泄漏，
+        //  我们的 ParticleManagerMixin 可以确保没问题，
+        //  但是一旦关闭 ParticleManagerMixin 注入，就绝对有问题
+        // 粒子的移除方法被原版调用时也要移除 controller 否则会内存泄漏
+        // 不能放在 controller.remove() 里，因为 markDead 可能在模组外部调用
+        ControlParticleManager.removeControl(controlUUID)
     }
 
     override fun buildGeometry(vertexConsumer: VertexConsumer, camera: Camera, tickDelta: Float) {
